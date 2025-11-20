@@ -16,7 +16,6 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -427,7 +426,7 @@ public class FolderActivity extends SyncthingActivity
                     return true;
                 }
                 if (mFolderUri != null) {
-                    /**
+                    /*
                      * Normally, syncthing takes care of creating the ".stfolder" marker.
                      * This fails on newer android versions if the syncthing binary only has
                      * readonly access on the path and the user tries to configure a

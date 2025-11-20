@@ -645,7 +645,7 @@ public class RestApi {
         Map<String, String> params =
                 ImmutableMap.of("since", String.valueOf(sinceId), "limit", String.valueOf(limit));
         new GetRequest(mContext, mUrl, GetRequest.URI_EVENTS, mApiKey, params, result -> {
-            JsonArray jsonEvents = new JsonParser().parse(result).getAsJsonArray();
+            JsonArray jsonEvents = JsonParser.parseString(result).getAsJsonArray();
             long lastId = 0;
 
             for (int i = 0; i < jsonEvents.size(); i++) {
