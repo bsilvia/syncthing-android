@@ -19,7 +19,7 @@ public class Completion {
     private static final String TAG = "Completion";
 
     HashMap<String, HashMap<String, CompletionInfo>> deviceFolderMap =
-        new HashMap<String, HashMap<String, CompletionInfo>>();
+            new HashMap<>();
 
     /**
      * Removes a folder from the cache model.
@@ -41,7 +41,7 @@ public class Completion {
         HashMap<String, CompletionInfo> folderMap;
 
         // Handle devices that were removed from the config.
-        List<String> removedDevices = new ArrayList<>();;
+        List<String> removedDevices = new ArrayList<>();
         boolean deviceFound;
         for (String deviceId : deviceFolderMap.keySet()) {
             deviceFound = false;
@@ -64,12 +64,12 @@ public class Completion {
         for (Device device : newDevices) {
             if (!deviceFolderMap.containsKey(device.deviceID)) {
                 Log.v(TAG, "updateFromConfig: Add device '" + device.deviceID + "' to cache model");
-                deviceFolderMap.put(device.deviceID, new HashMap<String, CompletionInfo>());
+                deviceFolderMap.put(device.deviceID, new HashMap<>());
             }
         }
 
         // Handle folders that were removed from the config.
-        List<String> removedFolders = new ArrayList<>();;
+        List<String> removedFolders = new ArrayList<>();
         boolean folderFound;
         for (Map.Entry<String, HashMap<String, CompletionInfo>> device : deviceFolderMap.entrySet()) {
             for (String folderId : device.getValue().keySet()) {
@@ -135,7 +135,7 @@ public class Completion {
                                     CompletionInfo completionInfo) {
         // Add device parent node if it does not exist.
         if (!deviceFolderMap.containsKey(deviceId)) {
-            deviceFolderMap.put(deviceId, new HashMap<String, CompletionInfo>());
+            deviceFolderMap.put(deviceId, new HashMap<>());
         }
         // Add folder or update existing folder entry.
         Objects.requireNonNull(deviceFolderMap.get(deviceId)).put(folderId, completionInfo);

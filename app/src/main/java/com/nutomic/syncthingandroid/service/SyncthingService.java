@@ -548,7 +548,7 @@ public class SyncthingService extends Service {
             Log.v(TAG, "Waiting for mStartupTask to finish after cancelling ...");
             try {
                 mStartupTask.get();
-            } catch (Exception e) { }
+            } catch (Exception ignored) { }
             mStartupTask = null;
         }
         onKilledListener.onKilled();
@@ -658,7 +658,7 @@ public class SyncthingService extends Service {
      * Exports the local config and keys to {@link Constants#EXPORT_PATH}.
      */
     public void exportConfig() {
-        boolean res = Constants.EXPORT_PATH.mkdirs();
+        Constants.EXPORT_PATH.mkdirs();
         try {
             Files.copy(Constants.getConfigFile(this),
                     new File(Constants.EXPORT_PATH, Constants.CONFIG_FILE));

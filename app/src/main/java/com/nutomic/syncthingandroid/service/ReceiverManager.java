@@ -2,7 +2,6 @@ package com.nutomic.syncthingandroid.service;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
 
@@ -16,7 +15,7 @@ public class ReceiverManager {
 
     private static final String TAG = "ReceiverManager";
 
-    private static List<BroadcastReceiver> mReceivers = new ArrayList<BroadcastReceiver>();
+    private static final List<BroadcastReceiver> mReceivers = new ArrayList<>();
 
     public static synchronized void registerReceiver(Context context, BroadcastReceiver receiver, IntentFilter intentFilter) {
         mReceivers.add(receiver);

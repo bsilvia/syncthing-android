@@ -28,13 +28,14 @@ import com.nutomic.syncthingandroid.model.Folder;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
 /**
  * Run by the syncthing service to convert syncthing events into local broadcasts.
- *
+ * <p>
  * It uses {@link RestApi#getEvents} to read the pending events and wait for new events.
  */
 public class EventProcessor implements  Runnable, RestApi.OnReceiveEventListener {
@@ -101,7 +102,7 @@ public class EventProcessor implements  Runnable, RestApi.OnReceiveEventListener
         Map<String,Object> mapData = null;
         try {
             mapData = (Map<String,Object>) event.data;
-        } catch (ClassCastException e) { }
+        } catch (ClassCastException ignored) { }
         switch (event.type) {
             case "ConfigSaved":
                 if (mApi != null) {
@@ -132,16 +133,16 @@ public class EventProcessor implements  Runnable, RestApi.OnReceiveEventListener
                         folderPath = f.path;
                     }
                 }
-                File updatedFile = new File(folderPath, (String) mapData.get("item"));
+                File updatedFile = new File(folderPath, (String) Objects.requireNonNull(mapData.get("item")));
                 if (!"delete".equals(mapData.get("action"))) {
-                    Log.i(TAG, "Rescanned file via MediaScanner: " + updatedFile.toString());
+                    Log.i(TAG, "Rescanned file via MediaScanner: " + updatedFile);
                     MediaScannerConnection.scanFile(mContext, new String[]{updatedFile.getPath()},
                             null, null);
                 } else {
                     // Starting with Android 10/Q and targeting API level 29/removing legacy storage flag,
                     // reports of files being spuriously deleted came up.
                     // Best guess is that Syncthing directly interacted with the filesystem before,
-                    // and there's a virtualisation layer there now. Also there's reports this API
+                    // and there's a virtualization layer there now. Also there's reports this API
                     // changed behaviour with scoped storage. In any case it now does not only
                     // update the media db, but actually delete the file on disk. Which is bad,
                     // as it can race with the creation of the same file and thus delete it. See:
@@ -151,7 +152,7 @@ public class EventProcessor implements  Runnable, RestApi.OnReceiveEventListener
                         break;
                     }
                     // https://stackoverflow.com/a/29881556/1837158
-                    Log.i(TAG, "Deleted file from MediaStore: " + updatedFile.toString());
+                    Log.i(TAG, "Deleted file from MediaStore: " + updatedFile);
                     Uri contentUri = MediaStore.Files.getContentUri("external");
                     ContentResolver resolver = mContext.getContentResolver();
                     resolver.delete(contentUri, MediaStore.Images.ImageColumns.DATA + " = ?",
@@ -231,6 +232,7 @@ public class EventProcessor implements  Runnable, RestApi.OnReceiveEventListener
         }
         Log.d(TAG, "Unknown device " + deviceName + "(" + deviceId + ") wants to connect");
 
+        assert deviceName != null;
         String title = mContext.getString(R.string.device_rejected,
                 deviceName.isEmpty() ? deviceId.substring(0, 7) : deviceName);
         int notificationId = mNotificationHandler.getNotificationIdFromText(title);
@@ -276,6 +278,7 @@ public class EventProcessor implements  Runnable, RestApi.OnReceiveEventListener
                 break;
             }
         }
+        assert folderLabel != null;
         String title = mContext.getString(R.string.folder_rejected, deviceName,
                 folderLabel.isEmpty() ? folderId : folderLabel + " (" + folderId + ")");
         int notificationId = mNotificationHandler.getNotificationIdFromText(title);

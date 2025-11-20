@@ -457,7 +457,7 @@ public class MainActivity extends StateDialogActivity
             // Close drawer on back button press.
             closeDrawer();
         } else {
-            /**
+            /*
              * Leave MainActivity in its state as the home button was pressed.
              * This will avoid waiting for the loading spinner when getting back
              * and give changes to do UI updates based on EventProcessor in the future.

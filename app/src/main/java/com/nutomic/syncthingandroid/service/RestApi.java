@@ -214,7 +214,7 @@ public class RestApi {
     }
 
     private void onReloadConfigComplete(String result) {
-        Boolean configParseSuccess;
+        boolean configParseSuccess;
         synchronized(mConfigLock) {
             mConfig = new Gson().fromJson(result, Config.class);
             configParseSuccess = mConfig != null;
@@ -243,9 +243,9 @@ public class RestApi {
             // First binary launch or binary upgraded case.
             new GetRequest(mContext, mUrl, GetRequest.URI_DEBUG, mApiKey, null, result -> {
                 try {
-                    JsonObject json = new JsonParser().parse(result).getAsJsonObject();
+                    JsonObject json = JsonParser.parseString(result).getAsJsonObject();
                     JsonObject jsonFacilities = json.getAsJsonObject("facilities");
-                    Set<String> facilitiesToStore = new HashSet<String>(jsonFacilities.keySet());
+                    Set<String> facilitiesToStore = new HashSet<>(jsonFacilities.keySet());
                     PreferenceManager.getDefaultSharedPreferences(mContext).edit()
                         .putStringSet(Constants.PREF_DEBUG_FACILITIES_AVAILABLE, facilitiesToStore)
                         .apply();
@@ -597,6 +597,7 @@ public class RestApi {
                         (mPreviousConnections.isPresent() && mPreviousConnections.get().connections.containsKey(e.getKey()))
                                 ? mPreviousConnections.get().connections.get(e.getKey())
                                 : new Connections.Connection();
+                assert prev != null;
                 e.getValue().setTransferRate(prev, msElapsed);
             }
             Connections.Connection prev =
@@ -668,7 +669,7 @@ public class RestApi {
                                    OnResultListener1<String> errorListener) {
         new GetRequest(mContext, mUrl, GetRequest.URI_DEVICEID, mApiKey,
                 ImmutableMap.of("id", id), result -> {
-            JsonObject json = new JsonParser().parse(result).getAsJsonObject();
+            JsonObject json = JsonParser.parseString(result).getAsJsonObject();
             JsonElement normalizedId = json.get("id");
             JsonElement error = json.get("error");
             if (normalizedId != null)
@@ -691,7 +692,7 @@ public class RestApi {
      */
     public void getUsageReport(final OnResultListener1<String> listener) {
         new GetRequest(mContext, mUrl, GetRequest.URI_REPORT, mApiKey, null, result -> {
-            JsonElement json = new JsonParser().parse(result);
+            JsonElement json = JsonParser.parseString(result);
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             listener.onResult(gson.toJson(json));
         });
