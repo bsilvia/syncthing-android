@@ -3,7 +3,7 @@ package com.nutomic.syncthingandroid.activities;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 
-import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
@@ -20,11 +20,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.PersistableBundle;
 import android.os.PowerManager;
 import android.provider.Settings;
 
-import com.google.android.material.color.DynamicColors;
 import com.google.android.material.tabs.TabLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -52,7 +50,6 @@ import com.nutomic.syncthingandroid.SyncthingApp;
 import com.nutomic.syncthingandroid.fragments.DeviceListFragment;
 import com.nutomic.syncthingandroid.fragments.DrawerFragment;
 import com.nutomic.syncthingandroid.fragments.FolderListFragment;
-import com.nutomic.syncthingandroid.service.Constants;
 import com.nutomic.syncthingandroid.service.RestApi;
 import com.nutomic.syncthingandroid.service.SyncthingService;
 import com.nutomic.syncthingandroid.service.SyncthingServiceBinder;
@@ -84,7 +81,7 @@ public class MainActivity extends StateDialogActivity
     /**
      * Time after first start when usage reporting dialog should be shown.
      *
-     * @see #showUsageReportingDialog()
+     * @see #showUsageReportingDialog(RestApi)
      */
     private static final long USAGE_REPORTING_DIALOG_DELAY = TimeUnit.DAYS.toMillis(3);
 
@@ -113,13 +110,13 @@ public class MainActivity extends StateDialogActivity
             case STARTING:
                 break;
             case ACTIVE:
-                getIntent().putExtra(this.EXTRA_KEY_GENERATION_IN_PROGRESS, false);
+                getIntent().putExtra(EXTRA_KEY_GENERATION_IN_PROGRESS, false);
                 showBatteryOptimizationDialogIfNecessary();
                 mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
                 mDrawerFragment.requestGuiUpdate();
 
                 // Check if the usage reporting minimum delay passed by.
-                Boolean usageReportingDelayPassed = (new Date().getTime() > getFirstStartTime() + USAGE_REPORTING_DIALOG_DELAY);
+                boolean usageReportingDelayPassed = (new Date().getTime() > getFirstStartTime() + USAGE_REPORTING_DIALOG_DELAY);
                 RestApi restApi = getApi();
                 if (usageReportingDelayPassed && restApi != null && !restApi.isUsageReportingDecided()) {
                     showUsageReportingDialog(restApi);
@@ -312,7 +309,7 @@ public class MainActivity extends StateDialogActivity
      * Saves current tab index and fragment states.
      */
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
 
         FragmentManager fm = getSupportFragmentManager();
@@ -332,7 +329,9 @@ public class MainActivity extends StateDialogActivity
             outState.putBoolean(IS_QRCODE_DIALOG_DISPLAYED, true);
             ImageView qrCode = mQrCodeDialog.findViewById(R.id.qrcode_image_view);
             TextView deviceID = mQrCodeDialog.findViewById(R.id.device_id);
+            assert qrCode != null;
             outState.putParcelable(QRCODE_BITMAP_KEY, ((BitmapDrawable) qrCode.getDrawable()).getBitmap());
+            assert deviceID != null;
             outState.putString(DEVICEID_KEY, deviceID.getText().toString());
         }
         Util.dismissDialogSafe(mRestartDialog, this);
@@ -351,7 +350,7 @@ public class MainActivity extends StateDialogActivity
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
@@ -399,7 +398,7 @@ public class MainActivity extends StateDialogActivity
     }
 
     @Override
-     public boolean onOptionsItemSelected(MenuItem item) {
+     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         return mDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
 
@@ -469,7 +468,7 @@ public class MainActivity extends StateDialogActivity
 
     /**
      * Calculating width based on
-     * http://www.google.com/design/spec/patterns/navigation-drawer.html#navigation-drawer-specs.
+     * <a href="http://www.google.com/design/spec/patterns/navigation-drawer.html#navigation-drawer-specs">navigation-drawer-specs</a>.
      */
     private void setOptimalDrawerWidth(View drawerContainer) {
         int actionBarSize = 0;

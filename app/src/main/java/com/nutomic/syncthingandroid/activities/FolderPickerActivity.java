@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Objects;
 
 import javax.inject.Inject;
 
@@ -102,12 +103,12 @@ public class FolderPickerActivity extends SyncthingActivity
         populateRoots();
 
         if (getIntent().hasExtra(EXTRA_INITIAL_DIRECTORY)) {
-            displayFolder(new File(getIntent().getStringExtra(EXTRA_INITIAL_DIRECTORY)));
+            displayFolder(new File(Objects.requireNonNull(getIntent().getStringExtra(EXTRA_INITIAL_DIRECTORY))));
         } else {
             displayRoot();
         }
 
-        Boolean prefUseRoot = mPreferences.getBoolean(Constants.PREF_USE_ROOT, false);
+        boolean prefUseRoot = mPreferences.getBoolean(Constants.PREF_USE_ROOT, false);
         if (!prefUseRoot) {
             Toast.makeText(this, R.string.kitkat_external_storage_warning, Toast.LENGTH_LONG)
                     .show();
@@ -121,8 +122,7 @@ public class FolderPickerActivity extends SyncthingActivity
      */
     @SuppressLint("NewApi")
     private void populateRoots() {
-        ArrayList<File> roots = new ArrayList<>();
-        roots.addAll(Arrays.asList(getExternalFilesDirs(null)));
+        ArrayList<File> roots = new ArrayList<>(Arrays.asList(getExternalFilesDirs(null)));
         roots.remove(getExternalFilesDir(null));
 
         String rootDir = getIntent().getStringExtra(EXTRA_ROOT_DIRECTORY);
@@ -138,7 +138,7 @@ public class FolderPickerActivity extends SyncthingActivity
 
             // Add paths that might not be accessible to Syncthing.
             if (mPreferences.getBoolean("advanced_folder_picker", false)) {
-                Collections.addAll(roots, new File("/storage/").listFiles());
+                Collections.addAll(roots, Objects.requireNonNull(new File("/storage/").listFiles()));
                 roots.add(new File("/"));
             }
         }
@@ -166,7 +166,7 @@ public class FolderPickerActivity extends SyncthingActivity
         super.onDestroy();
         SyncthingService syncthingService = getService();
         if (syncthingService != null) {
-            syncthingService.unregisterOnServiceStateChangeListener(this::onServiceStateChange);
+            syncthingService.unregisterOnServiceStateChangeListener(this);
         }
     }
 
@@ -253,6 +253,7 @@ public class FolderPickerActivity extends SyncthingActivity
         @SuppressWarnings("unchecked")
         ArrayAdapter<File> adapter = (ArrayAdapter<File>) mListView.getAdapter();
         File f = adapter.getItem(i);
+        assert f != null;
         if (f.isDirectory()) {
             displayFolder(f);
             invalidateOptions();
@@ -263,7 +264,7 @@ public class FolderPickerActivity extends SyncthingActivity
         invalidateOptionsMenu();
     }
 
-    private class FileAdapter extends ArrayAdapter<File> {
+    private static class FileAdapter extends ArrayAdapter<File> {
 
         public FileAdapter(Context context) {
             super(context, R.layout.item_folder_picker);
@@ -275,6 +276,7 @@ public class FolderPickerActivity extends SyncthingActivity
             convertView = super.getView(position, convertView, parent);
             TextView title = convertView.findViewById(android.R.id.text1);
             File f = getItem(position);
+            assert f != null;
             title.setText(f.getName());
             int textColor = (f.isDirectory())
                     ? android.R.color.primary_text_light
@@ -285,7 +287,7 @@ public class FolderPickerActivity extends SyncthingActivity
         }
     }
 
-    private class RootsAdapter extends ArrayAdapter<File> {
+    private static class RootsAdapter extends ArrayAdapter<File> {
 
         public RootsAdapter(Context context) {
             super(context, android.R.layout.simple_list_item_1);
@@ -296,7 +298,7 @@ public class FolderPickerActivity extends SyncthingActivity
         public View getView(int position, View convertView, @NonNull ViewGroup parent) {
             convertView = super.getView(position, convertView, parent);
             TextView title = convertView.findViewById(android.R.id.text1);
-            title.setText(getItem(position).getAbsolutePath());
+            title.setText(Objects.requireNonNull(getItem(position)).getAbsolutePath());
             return convertView;
         }
 

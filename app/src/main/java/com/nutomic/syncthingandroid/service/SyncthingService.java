@@ -142,7 +142,7 @@ public class SyncthingService extends Service {
      * {@link onStartCommand}.
      */
     private State mCurrentState = State.DISABLED;
-    private AtomicReference<RunConditionCheckResult> mCurrentCheckResult = new AtomicReference<>(RunConditionCheckResult.SHOULD_RUN);
+    private final AtomicReference<RunConditionCheckResult> mCurrentCheckResult = new AtomicReference<>(RunConditionCheckResult.SHOULD_RUN);
 
     private ConfigXml mConfig;
     private @Nullable PollWebGuiAvailableTask mPollWebGuiAvailableTask = null;
@@ -192,7 +192,7 @@ public class SyncthingService extends Service {
         ((SyncthingApp) getApplication()).component().inject(this);
         mHandler = new Handler();
 
-        /**
+        /*
          * If runtime permissions are revoked, android kills and restarts the service.
          * see issue: https://github.com/syncthing/syncthing-android/issues/871
          * We need to recheck if we still have the storage permission.
@@ -219,7 +219,7 @@ public class SyncthingService extends Service {
             return START_NOT_STICKY;
         }
 
-        /**
+        /*
          * Send current service state to listening endpoints.
          * This is required that components know about the service State.DISABLED
          * if RunConditionMonitor does not send a "shouldRun = true" callback
@@ -232,7 +232,7 @@ public class SyncthingService extends Service {
             }
         }
         if (mRunConditionMonitor == null) {
-            /**
+            /*
              * Instantiate the run condition monitor on first onStartCommand and
              * enable callback on run condition change affecting the final decision to
              * run/terminate syncthing. After initial run conditions are collected
@@ -246,7 +246,7 @@ public class SyncthingService extends Service {
             return START_STICKY;
 
         if (ACTION_RESTART.equals(intent.getAction()) && mCurrentState == State.ACTIVE) {
-            shutdown(State.INIT, () -> launchStartupTask());
+            shutdown(State.INIT, this::launchStartupTask);
         } else if (ACTION_RESET_DATABASE.equals(intent.getAction())) {
             shutdown(State.INIT, () -> {
                 new SyncthingRunnable(this, SyncthingRunnable.Command.resetdatabase).run();
@@ -261,13 +261,16 @@ public class SyncthingService extends Service {
             mRunConditionMonitor.updateShouldRunDecision();
         } else if (ACTION_IGNORE_DEVICE.equals(intent.getAction()) && mCurrentState == State.ACTIVE) {
             // mApi is not null due to State.ACTIVE
+            assert mApi != null;
             mApi.ignoreDevice(intent.getStringExtra(EXTRA_DEVICE_ID), intent.getStringExtra(EXTRA_DEVICE_NAME), intent.getStringExtra(EXTRA_DEVICE_ADDRESS));
             mNotificationHandler.cancelConsentNotification(intent.getIntExtra(EXTRA_NOTIFICATION_ID, 0));
         } else if (ACTION_IGNORE_FOLDER.equals(intent.getAction()) && mCurrentState == State.ACTIVE) {
             // mApi is not null due to State.ACTIVE
+            assert mApi != null;
             mApi.ignoreFolder(intent.getStringExtra(EXTRA_DEVICE_ID), intent.getStringExtra(EXTRA_FOLDER_ID), intent.getStringExtra(EXTRA_FOLDER_LABEL));
             mNotificationHandler.cancelConsentNotification(intent.getIntExtra(EXTRA_NOTIFICATION_ID, 0));
         } else if (ACTION_OVERRIDE_CHANGES.equals(intent.getAction()) && mCurrentState == State.ACTIVE) {
+            assert mApi != null;
             mApi.overrideChanges(intent.getStringExtra(EXTRA_FOLDER_ID));
         }
         return START_STICKY;
@@ -298,9 +301,7 @@ public class SyncthingService extends Service {
                     case INIT:
                         // HACK: Make sure there is no syncthing binary left running from an improper
                         // shutdown (eg Play Store update).
-                        shutdown(State.INIT, () -> {
-                            launchStartupTask();
-                        });
+                        shutdown(State.INIT, this::launchStartupTask);
                         break;
                     case STARTING:
                     case ACTIVE:
@@ -351,7 +352,7 @@ public class SyncthingService extends Service {
      * version.
      */
      private static class StartupTask extends AsyncTask<Void, Void, Void> {
-         private WeakReference<SyncthingService> refSyncthingService;
+         private final WeakReference<SyncthingService> refSyncthingService;
 
          StartupTask(SyncthingService context) {
              refSyncthingService = new WeakReference<>(context);
@@ -406,7 +407,7 @@ public class SyncthingService extends Service {
          mSyncthingRunnableThread = new Thread(mSyncthingRunnable);
          mSyncthingRunnableThread.start();
 
-         /**
+         /*
           * Wait for the web-gui of the native syncthing binary to come online.
           *
           * In case the binary is to be stopped, also be aware that another thread could request
@@ -444,7 +445,7 @@ public class SyncthingService extends Service {
             onServiceStateChange(State.ACTIVE);
         }
 
-        /**
+        /*
          * If the service instance got an onDestroy() event while being in
          * State.STARTING we'll trigger the service onDestroy() now. this
          * allows the syncthing binary to get gracefully stopped.
@@ -474,7 +475,7 @@ public class SyncthingService extends Service {
     public void onDestroy() {
         Log.v(TAG, "onDestroy");
         if (mRunConditionMonitor != null) {
-            /**
+            /*
              * Shut down the OnDeviceStateChangedListener so we won't get interrupted by run
              * condition events that occur during shutdown.
              */
@@ -486,7 +487,7 @@ public class SyncthingService extends Service {
         if (mStoragePermissionGranted) {
             synchronized (mStateLock) {
                 if (mCurrentState == State.STARTING) {
-                    Log.i(TAG, "Delay shutting down synchting binary until initialisation finished");
+                    Log.i(TAG, "Delay shutting down syncthing binary until initialisation finished");
                     mDestroyScheduled = true;
                 } else {
                     Log.i(TAG, "Shutting down syncthing binary immediately");
@@ -571,7 +572,7 @@ public class SyncthingService extends Service {
 
     /**
      * Register a listener for the syncthing API state changing.
-     *
+     * <p>
      * The listener is called immediately with the current state, and again whenever the state
      * changes. The call is always from the GUI thread.
      *
@@ -657,7 +658,7 @@ public class SyncthingService extends Service {
      * Exports the local config and keys to {@link Constants#EXPORT_PATH}.
      */
     public void exportConfig() {
-        Constants.EXPORT_PATH.mkdirs();
+        boolean res = Constants.EXPORT_PATH.mkdirs();
         try {
             Files.copy(Constants.getConfigFile(this),
                     new File(Constants.EXPORT_PATH, Constants.CONFIG_FILE));

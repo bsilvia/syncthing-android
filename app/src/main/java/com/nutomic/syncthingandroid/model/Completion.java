@@ -6,10 +6,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * This class caches remote folder and device synchronization
- * completion indicators defined in {@link CompletionInfo#CompletionInfo}
+ * completion indicators defined in {@link CompletionInfo}
  * according to syncthing's REST "/completion" JSON result schema.
  * Completion model of syncthing's web UI is completion[deviceId][folderId]
  */
@@ -41,7 +42,7 @@ public class Completion {
 
         // Handle devices that were removed from the config.
         List<String> removedDevices = new ArrayList<>();;
-        Boolean deviceFound;
+        boolean deviceFound;
         for (String deviceId : deviceFolderMap.keySet()) {
             deviceFound = false;
             for (Device device : newDevices) {
@@ -69,7 +70,7 @@ public class Completion {
 
         // Handle folders that were removed from the config.
         List<String> removedFolders = new ArrayList<>();;
-        Boolean folderFound;
+        boolean folderFound;
         for (Map.Entry<String, HashMap<String, CompletionInfo>> device : deviceFolderMap.entrySet()) {
             for (String folderId : device.getValue().keySet()) {
                 folderFound = false;
@@ -95,6 +96,7 @@ public class Completion {
                 if (folder.getDevice(device.deviceID) != null) {
                     // folder is shared with device.
                     folderMap = deviceFolderMap.get(device.deviceID);
+                    assert folderMap != null;
                     if (!folderMap.containsKey(folder.id)) {
                         Log.v(TAG, "updateFromConfig: Add folder '" + folder.id +
                                     "' shared with device '" + device.deviceID + "' to cache model.");
@@ -136,6 +138,6 @@ public class Completion {
             deviceFolderMap.put(deviceId, new HashMap<String, CompletionInfo>());
         }
         // Add folder or update existing folder entry.
-        deviceFolderMap.get(deviceId).put(folderId, completionInfo);
+        Objects.requireNonNull(deviceFolderMap.get(deviceId)).put(folderId, completionInfo);
     }
 }

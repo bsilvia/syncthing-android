@@ -16,7 +16,6 @@ import android.util.Log;
 import androidx.core.util.Consumer;
 
 import com.annimon.stream.Stream;
-import com.nutomic.syncthingandroid.BuildConfig;
 import com.nutomic.syncthingandroid.R;
 import com.nutomic.syncthingandroid.SyncthingApp;
 import com.nutomic.syncthingandroid.activities.DeviceActivity;
@@ -177,9 +176,9 @@ public class EventProcessor implements  Runnable, RestApi.OnReceiveEventListener
             case "Starting":
             case "StartupComplete":
             case "StateChanged":
-                if (BuildConfig.DEBUG) {
-                    Log.v(TAG, "Ignored event " + event.type + ", data " + event.data);
-                }
+//                if (BuildConfig.DEBUG) {
+//                    Log.v(TAG, "Ignored event " + event.type + ", data " + event.data);
+//                }
                 break;
             default:
                 Log.v(TAG, "Unhandled event " + event.type);

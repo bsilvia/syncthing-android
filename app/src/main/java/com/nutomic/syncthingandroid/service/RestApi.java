@@ -15,7 +15,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.nutomic.syncthingandroid.BuildConfig;
 import com.nutomic.syncthingandroid.SyncthingApp;
 import com.nutomic.syncthingandroid.activities.ShareActivity;
 import com.nutomic.syncthingandroid.http.GetRequest;
@@ -45,6 +44,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -60,9 +60,9 @@ public class RestApi {
     private static final SimpleDateFormat dateFormat;
     static {
         if (android.os.Build.VERSION.SDK_INT < 24) {
-            dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
         } else {
-            dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+            dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US);
         }
     }
 
@@ -113,8 +113,8 @@ public class RestApi {
     private long mPreviousConnectionTime = 0;
 
     /**
-     * In the last-finishing {@link readConfigFromRestApi} callback, we have to call
-     * {@link SyncthingService#onApiAvailable} to indicate that the RestApi class is fully initialized.
+     * In the last-finishing {@link #readConfigFromRestApi()} callback, we have to call
+     * {@link SyncthingService#onApiAvailable}} to indicate that the RestApi class is fully initialized.
      * We do this to avoid getting stuck with our main thread due to synchronous REST queries.
      * The correct indication of full initialisation is crucial to stability as other listeners of
      * {@link SettingsActivity#onServiceStateChange} needs cached config and system information available.
@@ -138,12 +138,12 @@ public class RestApi {
     /**
      * Stores the latest result of {@link #getFolderStatus} for each folder
      */
-    private HashMap<String, FolderStatus> mCachedFolderStatuses = new HashMap<>();
+    private final HashMap<String, FolderStatus> mCachedFolderStatuses = new HashMap<>();
 
     /**
      * Stores the latest result of device and folder completion events.
      */
-    private Completion mCompletion = new Completion();
+    private final Completion mCompletion = new Completion();
 
     @Inject NotificationHandler mNotificationHandler;
 
@@ -176,7 +176,7 @@ public class RestApi {
             asyncQuerySystemInfoComplete = false;
         }
         new GetRequest(mContext, mUrl, GetRequest.URI_VERSION, mApiKey, null, result -> {
-            JsonObject json = new JsonParser().parse(result).getAsJsonObject();
+            JsonObject json = JsonParser.parseString(result).getAsJsonObject();
             mVersion = json.get("version").getAsString();
             Log.i(TAG, "Syncthing version is " + mVersion);
             updateDebugFacilitiesCache();
@@ -223,9 +223,9 @@ public class RestApi {
             throw new RuntimeException("config is null: " + result);
         }
         Log.v(TAG, "onReloadConfigComplete: Successfully parsed configuration.");
-        if (BuildConfig.DEBUG) {
-            Log.v(TAG, "mConfig.remoteIgnoredDevices = " + new Gson().toJson(mConfig.remoteIgnoredDevices));
-        }
+//        if (BuildConfig.DEBUG) {
+//            Log.v(TAG, "mConfig.remoteIgnoredDevices = " + new Gson().toJson(mConfig.remoteIgnoredDevices));
+//        }
 
         // Update cached device and folder information stored in the mCompletion model.
         mCompletion.updateFromConfig(getDevices(true), getFolders());
@@ -243,12 +243,9 @@ public class RestApi {
             // First binary launch or binary upgraded case.
             new GetRequest(mContext, mUrl, GetRequest.URI_DEBUG, mApiKey, null, result -> {
                 try {
-                    Set<String> facilitiesToStore = new HashSet<String>();
                     JsonObject json = new JsonParser().parse(result).getAsJsonObject();
                     JsonObject jsonFacilities = json.getAsJsonObject("facilities");
-                    for (String facilityName : jsonFacilities.keySet()) {
-                        facilitiesToStore.add(facilityName);
-                    }
+                    Set<String> facilitiesToStore = new HashSet<String>(jsonFacilities.keySet());
                     PreferenceManager.getDefaultSharedPreferences(mContext).edit()
                         .putStringSet(Constants.PREF_DEBUG_FACILITIES_AVAILABLE, facilitiesToStore)
                         .apply();
@@ -301,7 +298,7 @@ public class RestApi {
         synchronized (mConfigLock) {
             for (Device device : mConfig.devices) {
                 if (deviceId.equals(device.deviceID)) {
-                    /**
+                    /*
                      * Check if the folder has already been ignored.
                      */
                     for (IgnoredFolder ignoredFolder : device.ignoredFolders) {
@@ -312,7 +309,7 @@ public class RestApi {
                         }
                     }
 
-                    /**
+                    /*
                      * Ignore folder by moving its corresponding "pendingFolder" entry to
                      * a newly created "ignoredFolder" entry.
                      */
@@ -321,9 +318,9 @@ public class RestApi {
                     ignoredFolder.label = folderLabel;
                     ignoredFolder.time = dateFormat.format(new Date());
                     device.ignoredFolders.add(ignoredFolder);
-                    if (BuildConfig.DEBUG) {
-                        Log.v(TAG, "device.ignoredFolders = " + new Gson().toJson(device.ignoredFolders));
-                    }
+//                    if (BuildConfig.DEBUG) {
+//                        Log.v(TAG, "device.ignoredFolders = " + new Gson().toJson(device.ignoredFolders));
+//                    }
                     sendConfig();
                     Log.d(TAG, "Ignored folder [" + folderId + "] announced by device [" + deviceId + "]");
 
@@ -408,7 +405,7 @@ public class RestApi {
     }
 
     /**
-     * This is only used for new folder creation, see {@link FolderActivity}.
+     * This is only used for new folder creation, see {@link com.nutomic.syncthingandroid.activities.FolderActivity}.
      */
     public void createFolder(Folder folder) {
         synchronized (mConfigLock) {
@@ -548,7 +545,6 @@ public class RestApi {
 
     /**
      * Returns a deep copy of object.
-     *
      * This method uses Gson and only works with objects that can be converted with Gson.
      */
     private <T> T deepCopy(T object, Type type) {
@@ -585,8 +581,8 @@ public class RestApi {
      */
     public void getConnections(final OnResultListener1<Connections> listener) {
         new GetRequest(mContext, mUrl, GetRequest.URI_CONNECTIONS, mApiKey, null, result -> {
-            Long now = System.currentTimeMillis();
-            Long msElapsed = now - mPreviousConnectionTime;
+            long now = System.currentTimeMillis();
+            long msElapsed = now - mPreviousConnectionTime;
             if (msElapsed < Constants.GUI_UPDATE_INTERVAL) {
                 listener.onResult(deepCopy(mPreviousConnections.get(), Connections.class));
                 return;
@@ -642,7 +638,6 @@ public class RestApi {
 
     /**
      * Retrieves the events that have accumulated since the given event id.
-     *
      * The OnReceiveEventListeners onEvent method is called for each event.
      */
     public final void getEvents(final long sinceId, final long limit, final OnReceiveEventListener listener) {
