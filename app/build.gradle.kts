@@ -13,6 +13,7 @@ dependencies {
     implementation("com.annimon:stream:1.2.2")
     implementation("com.android.volley:volley:1.2.1")
     implementation("commons-io:commons-io:2.21.0")
+    implementation("androidx.documentfile:documentfile:1.1.0")
 
     implementation("com.journeyapps:zxing-android-embedded:4.3.0") {
         isTransitive = false
@@ -112,8 +113,7 @@ tasks.register<Delete>("deleteUnsupportedPlayTranslations") {
 project.afterEvaluate {
     android.buildTypes.forEach { buildType ->
         tasks.named("merge${
-            buildType.name.toString()
-                .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+            buildType.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         }JniLibFolders") {
             dependsOn(":syncthing:buildNative")
         }
