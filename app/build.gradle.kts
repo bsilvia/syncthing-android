@@ -1,36 +1,36 @@
 plugins {
     id("com.android.application")
     id("com.github.ben-manes.versions")
-    id("com.github.triplet.play") version "3.7.0"
+    id("com.github.triplet.play") version "3.12.2"
 }
 
 dependencies {
     implementation("eu.chainfire:libsuperuser:1.1.1")
-    implementation("com.google.android.material:material:1.8.0")
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.android.material:material:1.13.0")
+    implementation("com.google.code.gson:gson:2.13.2")
     implementation("org.mindrot:jbcrypt:0.4")
-    implementation("com.google.guava:guava:32.1.3-android")
+    implementation("com.google.guava:guava:33.5.0-android")
     implementation("com.annimon:stream:1.2.2")
     implementation("com.android.volley:volley:1.2.1")
-    implementation("commons-io:commons-io:2.11.0")
+    implementation("commons-io:commons-io:2.21.0")
 
     implementation("com.journeyapps:zxing-android-embedded:4.3.0") {
         isTransitive = false
     }
-    implementation("com.google.zxing:core:3.4.1")
+    implementation("com.google.zxing:core:3.5.4")
 
-    implementation("androidx.constraintlayout:constraintlayout:2.0.4")
-    implementation("com.google.dagger:dagger:2.49")
-    annotationProcessor("com.google.dagger:dagger-compiler:2.49")
-    androidTestImplementation("androidx.test:rules:1.4.0")
-    androidTestImplementation("androidx.annotation:annotation:1.2.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.2.1")
+    implementation("com.google.dagger:dagger:2.57.2")
+    annotationProcessor("com.google.dagger:dagger-compiler:2.57.2")
+    androidTestImplementation("androidx.test:rules:1.7.0")
+    androidTestImplementation("androidx.annotation:annotation:1.9.1")
 }
 
 android {
     val ndkVersionShared = rootProject.extra.get("ndkVersionShared")
     // Changes to these values need to be reflected in `../docker/Dockerfile`
-    compileSdk = 34
-    ndkVersion = "${ndkVersionShared}"
+    compileSdk = 36
+    ndkVersion = "$ndkVersionShared"
 
     buildFeatures {
         dataBinding = true
