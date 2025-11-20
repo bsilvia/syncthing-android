@@ -1,5 +1,3 @@
-import org.gradle.configurationcache.extensions.capitalized
-
 plugins {
     id("com.android.application")
     id("com.github.ben-manes.versions")
@@ -32,7 +30,6 @@ android {
     val ndkVersionShared = rootProject.extra.get("ndkVersionShared")
     // Changes to these values need to be reflected in `../docker/Dockerfile`
     compileSdk = 34
-    buildToolsVersion = "34.0.0"
     ndkVersion = "${ndkVersionShared}"
 
     buildFeatures {
@@ -64,7 +61,6 @@ android {
             applicationIdSuffix = ".debug"
             isDebuggable = true
             isJniDebuggable = true
-            isRenderscriptDebuggable = true
             isMinifyEnabled = false
         }
         getByName("release") {
@@ -81,11 +77,12 @@ android {
 
     // Otherwise libsyncthing.so doesn't appear where it should in installs
     // based on app bundles, and thus nothing works.
-    packagingOptions {
+    packaging {
         jniLibs {
             useLegacyPackaging = true
         }
     }
+    namespace = "com.nutomic.syncthingandroid"
 }
 
 play {
@@ -113,8 +110,11 @@ tasks.register<Delete>("deleteUnsupportedPlayTranslations") {
 }
 
 project.afterEvaluate {
-    android.buildTypes.forEach {
-        tasks.named("merge${it.name.capitalized()}JniLibFolders") {
+    android.buildTypes.forEach { buildType ->
+        tasks.named("merge${
+            buildType.name.toString()
+                .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+        }JniLibFolders") {
             dependsOn(":syncthing:buildNative")
         }
     }
