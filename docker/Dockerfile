@@ -1,6 +1,6 @@
 FROM eclipse-temurin:11-jdk-jammy
 
-ENV GO_VERSION 1.22.7
+ENV GO_VERSION 1.25.4
 
 # Can be found scrolling down on this page:
 # https://developer.android.com/studio/index.html#command-tools
@@ -32,7 +32,7 @@ ARG SDKMANAGER="${ANDROID_HOME}/cmdline-tools/bin/sdkmanager --sdk_root=${ANDROI
 RUN yes | $SDKMANAGER --licenses > /dev/null
 
 # NDK version
-ENV NDK_VERSION 25.2.9519653
+ENV NDK_VERSION 29.0.14206865
 
 # Install other android packages, including NDK
 RUN $SDKMANAGER tools platform-tools "build-tools;36.0.0" "platforms;android-34" "extras;android;m2repository" "ndk;${NDK_VERSION}"
