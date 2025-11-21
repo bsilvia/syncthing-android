@@ -42,8 +42,8 @@ android {
         applicationId = "com.nutomic.syncthingandroid"
         minSdk = 21
         targetSdk = 33
-        versionCode = 4395
-        versionName = "1.28.1"
+        versionCode = 4396
+        versionName = "2.0.9"
         testApplicationId = "com.nutomic.syncthingandroid.test"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
