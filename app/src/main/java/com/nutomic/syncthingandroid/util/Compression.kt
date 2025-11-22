@@ -22,6 +22,7 @@ enum class Compression(val index: Int) {
     }
 
     companion object {
+        @JvmStatic
         fun fromIndex(index: Int): Compression {
             when (index) {
                 0 -> return Compression.NONE
@@ -30,6 +31,7 @@ enum class Compression(val index: Int) {
             }
         }
 
+        @JvmStatic
         fun fromValue(context: Context, value: String?): Compression {
             var index = 0
             val values = context.getResources().getStringArray(R.array.compress_values)

@@ -35,6 +35,7 @@ import javax.xml.transform.stream.StreamResult
 class ConfigXml(private val mContext: Context) {
     class OpenConfigException : RuntimeException()
 
+    @JvmField
     @Inject
     var mPreferences: SharedPreferences? = null
 

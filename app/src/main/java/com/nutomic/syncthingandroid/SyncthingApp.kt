@@ -8,6 +8,7 @@ import com.nutomic.syncthingandroid.util.Languages
 import javax.inject.Inject
 
 class SyncthingApp : Application() {
+    @JvmField
     @Inject
     var mComponent: DaggerComponent? = null
 

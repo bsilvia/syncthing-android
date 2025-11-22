@@ -21,6 +21,8 @@ import com.nutomic.syncthingandroid.activities.MainActivity;
 import com.nutomic.syncthingandroid.service.Constants;
 import com.nutomic.syncthingandroid.service.SyncthingService.State;
 
+import java.util.Objects;
+
 import javax.inject.Inject;
 
 public class NotificationHandler {
@@ -47,7 +49,7 @@ public class NotificationHandler {
     private Boolean appShutdownInProgress = false;
 
     public NotificationHandler(Context context) {
-        ((SyncthingApp) context.getApplicationContext()).component().inject(this);
+        Objects.requireNonNull(((SyncthingApp) context.getApplicationContext()).component()).inject(this);
         mContext = context;
         mNotificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
 

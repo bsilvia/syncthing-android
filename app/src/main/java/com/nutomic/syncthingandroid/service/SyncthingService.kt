@@ -85,12 +85,16 @@ class SyncthingService : Service() {
     private val mOnRunConditionCheckResultListeners = HashSet<OnRunConditionCheckResultListener?>()
     private val mBinder = SyncthingServiceBinder(this)
 
+    @JvmField
     @Inject
     var notificationHandler: NotificationHandler? = null
 
     @JvmField
     @Inject
     var mPreferences: SharedPreferences? = null
+
+    // Java callers expect a `getNotificationHandler()` method; expose it explicitly.
+    fun getNotificationHandler(): NotificationHandler? = notificationHandler
 
     /**
      * Object that must be locked upon accessing mCurrentState
@@ -119,7 +123,7 @@ class SyncthingService : Service() {
     override fun onCreate() {
         Log.v(TAG, "onCreate")
         super.onCreate()
-        (application as SyncthingApp).component().inject(this)
+        (application as SyncthingApp).component()!!.inject(this)
         mHandler = Handler()
 
         // Executor for background tasks that previously used AsyncTask
@@ -345,13 +349,13 @@ class SyncthingService : Service() {
     private fun onStartupTaskCompleteListener() {
         if (this.api == null) {
             this.api = RestApi(
-                this, mConfig!!.getWebGuiUrl(), mConfig!!.apiKey,
+                this, mConfig!!.webGuiUrl, mConfig!!.apiKey,
                 { this.onApiAvailable() }, {
                     onServiceStateChange(
                         this.currentState
                     )
                 })
-            Log.i(TAG, "Web GUI will be available at " + mConfig!!.getWebGuiUrl())
+            Log.i(TAG, "Web GUI will be available at " + mConfig!!.webGuiUrl)
         }
 
         // Start the syncthing binary.
@@ -374,7 +378,7 @@ class SyncthingService : Service() {
             mPollWebGuiAvailableTask = PollWebGuiAvailableTask(
                 this, this.webGuiUrl, mConfig!!.apiKey
             ) { _: String? ->
-                Log.i(TAG, "Web GUI has come online at " + mConfig!!.getWebGuiUrl())
+                Log.i(TAG, "Web GUI has come online at " + mConfig!!.webGuiUrl)
                 if (this.api != null) {
                     api!!.readConfigFromRestApi()
                 }
@@ -599,7 +603,7 @@ class SyncthingService : Service() {
 
 
     val webGuiUrl: URL?
-        get() = mConfig!!.getWebGuiUrl()
+        get() = mConfig!!.webGuiUrl
 
     val currentRunConditionCheckResult: RunConditionCheckResult?
         get() = mCurrentCheckResult.get()

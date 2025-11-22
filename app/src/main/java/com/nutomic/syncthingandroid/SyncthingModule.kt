@@ -1,7 +1,7 @@
 package com.nutomic.syncthingandroid
 
 import android.content.SharedPreferences
-import android.preference.PreferenceManager
+import androidx.preference.PreferenceManager
 import com.nutomic.syncthingandroid.service.NotificationHandler
 import dagger.Module
 import dagger.Provides
@@ -11,7 +11,7 @@ import javax.inject.Singleton
 class SyncthingModule(private val mApp: SyncthingApp) {
     @get:Singleton
     @get:Provides
-    val preferences: SharedPreferences?
+    val preferences: SharedPreferences
         get() = PreferenceManager.getDefaultSharedPreferences(mApp)
 
     @get:Singleton

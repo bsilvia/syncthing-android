@@ -20,6 +20,7 @@ object FileUtils {
     private const val PRIMARY_VOLUME_NAME = "primary"
     private const val HOME_VOLUME_NAME = "home"
 
+    @JvmStatic
     fun getAbsolutePathFromSAFUri(context: Context, safResultUri: Uri?): String? {
         val treeUri = DocumentsContract.buildDocumentUriUsingTree(
             safResultUri,
@@ -28,6 +29,7 @@ object FileUtils {
         return getAbsolutePathFromTreeUri(context, treeUri)
     }
 
+    @JvmStatic
     fun getAbsolutePathFromTreeUri(context: Context, treeUri: Uri?): String? {
         if (treeUri == null) {
             Log.w(TAG, "getAbsolutePathFromTreeUri: called with treeUri == null")
@@ -75,7 +77,7 @@ object FileUtils {
                 Log.v(TAG, "getVolumePath: isDownloadsVolume")
                 // Reading the environment var avoids hard coding the case of the "downloads" folder.
                 return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                    .getAbsolutePath()
+                    .absolutePath
             }
 
             val mStorageManager =
@@ -91,7 +93,7 @@ object FileUtils {
                 val storageVolumeElement = Array.get(result, i)
                 val uuid = getUuid.invoke(storageVolumeElement) as String?
                 val primary = isPrimary.invoke(storageVolumeElement) as Boolean?
-                val isPrimaryVolume = (primary && PRIMARY_VOLUME_NAME == volumeId)
+                val isPrimaryVolume = (primary == true && PRIMARY_VOLUME_NAME == volumeId)
                 val isExternalVolume = ((uuid != null) && uuid == volumeId)
                 Log.d(
                     TAG, "Found volume with uuid='" + uuid +
@@ -135,6 +137,7 @@ object FileUtils {
      * This is crucial to assist the user finding a writeable folder
      * to use syncthing's two way sync feature.
      */
+    @JvmStatic
     fun getExternalFilesDirUri(context: Context): Uri? {
         try {
             /**
@@ -172,6 +175,11 @@ object FileUtils {
         return null
     }
 
+    @JvmStatic
+    fun getExternalFilesDirUriJvm(context: Context): Uri? {
+        return getExternalFilesDirUri(context)
+    }
+
     private fun getVolumeIdFromTreeUri(treeUri: Uri?): String? {
         val docId = DocumentsContract.getTreeDocumentId(treeUri)
         val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
@@ -189,6 +197,7 @@ object FileUtils {
         else return File.separator
     }
 
+    @JvmStatic
     fun cutTrailingSlash(path: String): String? {
         if (path.endsWith(File.separator)) {
             return path.substring(0, path.length - 1)
