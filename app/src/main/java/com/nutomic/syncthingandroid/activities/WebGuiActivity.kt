@@ -139,6 +139,17 @@ class WebGuiActivity : StateDialogActivity(), OnServiceStateChangeListener {
         } else {
             startService(serviceIntent)
         }
+
+
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding!!.webview.canGoBack()) {
+                    binding!!.webview.goBack()
+                } else {
+                    finish()
+                }
+            }
+        })
     }
 
     override fun onServiceConnected(componentName: ComponentName?, iBinder: IBinder?) {
@@ -167,16 +178,6 @@ class WebGuiActivity : StateDialogActivity(), OnServiceStateChangeListener {
                 headers["Authorization"] = "Basic $b64Credentials"
                 binding!!.webview.loadUrl(service?.webGuiUrl.toString(), headers)
             }
-        }
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        if (binding!!.webview.canGoBack()) {
-            binding!!.webview.goBack()
-        } else {
-            finish()
-            super.onBackPressed()
         }
     }
 

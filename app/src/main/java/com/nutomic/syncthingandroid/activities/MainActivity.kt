@@ -263,6 +263,23 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
         }
 
         onNewIntent(intent)
+
+
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (mDrawerLayout!!.isDrawerOpen(GravityCompat.START)) {
+                    // Close drawer on back button press.
+                    closeDrawer()
+                } else {
+                    /*
+                     * Leave MainActivity in its state as the home button was pressed.
+                     * This will avoid waiting for the loading spinner when getting back
+                     * and give changes to do UI updates based on EventProcessor in the future.
+                     */
+                    moveTaskToBack(true)
+                }
+            }
+        })
     }
 
     public override fun onResume() {
@@ -360,7 +377,7 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
         return getAlertDialogBuilder(this)
             .setMessage(R.string.dialog_confirm_restart)
             .setPositiveButton(
-                android.R.string.yes
+                android.R.string.ok
             ) { _: DialogInterface?, _: Int ->
                 this.startService(
                     Intent(this, SyncthingService::class.java)
@@ -457,22 +474,6 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
             return true
         }
         return super.onKeyDown(keyCode, e)
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        super.onBackPressed()
-        if (mDrawerLayout!!.isDrawerOpen(GravityCompat.START)) {
-            // Close drawer on back button press.
-            closeDrawer()
-        } else {
-            /*
-             * Leave MainActivity in its state as the home button was pressed.
-             * This will avoid waiting for the loading spinner when getting back
-             * and give changes to do UI updates based on EventProcessor in the future.
-             */
-            moveTaskToBack(true)
-        }
     }
 
     /**

@@ -20,6 +20,14 @@ class PullOrderDialogActivity : ThemedAppCompatActivity() {
         }
         initiateFinishBtn()
         initiateSpinner()
+
+
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                saveConfiguration()
+                finish()
+            }
+        })
     }
 
     private fun initiateFinishBtn() {
@@ -54,12 +62,6 @@ class PullOrderDialogActivity : ThemedAppCompatActivity() {
                 // This is not allowed.
             }
         }
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        saveConfiguration()
-        super.onBackPressed()
     }
 
     companion object {

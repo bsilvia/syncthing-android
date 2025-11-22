@@ -1,5 +1,6 @@
 package com.nutomic.syncthingandroid.activities
 
+import android.app.Activity
 import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
@@ -15,6 +16,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.CompoundButton
 import android.widget.Toast
+import android.window.OnBackInvokedDispatcher
 import androidx.core.content.ContextCompat
 import com.google.gson.Gson
 import com.nutomic.syncthingandroid.R
@@ -28,6 +30,8 @@ import com.nutomic.syncthingandroid.util.Compression
 import com.nutomic.syncthingandroid.util.Compression.Companion.fromIndex
 import com.nutomic.syncthingandroid.util.Compression.Companion.fromValue
 import com.nutomic.syncthingandroid.util.TextWatcherAdapter
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import com.nutomic.syncthingandroid.util.Util.copyDeviceId
 import com.nutomic.syncthingandroid.util.Util.dismissDialogSafe
 import com.nutomic.syncthingandroid.util.Util.getAlertDialogBuilder
@@ -39,6 +43,8 @@ class DeviceActivity : SyncthingActivity(), View.OnClickListener {
     private var mDevice: Device? = null
 
     private var binding: ActivityDeviceBinding? = null
+
+    private lateinit var qrLauncher: ActivityResultLauncher<Intent>
 
     private var mIsCreateMode = false
 
@@ -107,8 +113,19 @@ class DeviceActivity : SyncthingActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         binding = ActivityDeviceBinding.inflate(layoutInflater)
         setContentView(binding!!.getRoot())
-
         mIsCreateMode = intent.getBooleanExtra(EXTRA_IS_CREATE, false)
+        // Register Activity Result launcher for QR scanner (replaces deprecated startActivityForResult)
+        qrLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val scanResult = result.data?.getStringExtra(QRScannerActivity.QR_RESULT_ARG)
+                if (scanResult != null) {
+                    mDevice!!.deviceID = scanResult
+                    binding!!.id.setText(mDevice!!.deviceID)
+                }
+            }
+        }
         registerOnServiceConnectedListener(OnServiceConnectedListener { this.onServiceConnected() })
         setTitle(if (mIsCreateMode) R.string.add_device else R.string.edit_device)
 
@@ -131,6 +148,16 @@ class DeviceActivity : SyncthingActivity(), View.OnClickListener {
         } else {
             prepareEditMode()
         }
+
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (mIsCreateMode) {
+                    showDiscardDialog()
+                } else {
+                    finish()
+                }
+            }
+        })
     }
 
     private fun restoreDialogStates(savedInstanceState: Bundle) {
@@ -333,7 +360,7 @@ class DeviceActivity : SyncthingActivity(), View.OnClickListener {
             }
 
             android.R.id.home -> {
-                onBackPressed()
+                onBackPressedDispatcher.onBackPressed()
                 return true
             }
 
@@ -350,31 +377,19 @@ class DeviceActivity : SyncthingActivity(), View.OnClickListener {
         return getAlertDialogBuilder(this)
             .setMessage(R.string.remove_device_confirm)
             .setPositiveButton(
-                android.R.string.yes
+                android.R.string.ok
             ) { _: DialogInterface?, _: Int ->
                 api?.removeDevice(mDevice!!.deviceID)
                 finish()
             }
-            .setNegativeButton(android.R.string.no, null)
+            .setNegativeButton(android.R.string.cancel, null)
             .create()
     }
 
     /**
      * Receives value of scanned QR code and sets it as device ID.
      */
-    public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, intent)
-
-        if (requestCode == QR_SCAN_REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
-                val scanResult = intent.getStringExtra(QRScannerActivity.QR_RESULT_ARG)
-                if (scanResult != null) {
-                    mDevice!!.deviceID = scanResult
-                    binding!!.id.setText(mDevice!!.deviceID)
-                }
-            }
-        }
-    }
+    // QR results are handled via Activity Result API registered in onCreate
 
     private fun initDevice() {
         mDevice = Device()
@@ -430,7 +445,7 @@ class DeviceActivity : SyncthingActivity(), View.OnClickListener {
             }
             binding!!.qrButton -> {
                 val qrIntent: Intent = QRScannerActivity.intent(this)
-                startActivityForResult(qrIntent, QR_SCAN_REQUEST_CODE)
+                qrLauncher.launch(qrIntent)
             }
             binding!!.idContainer -> {
                 copyDeviceId(this, mDevice!!.deviceID)
@@ -467,14 +482,6 @@ class DeviceActivity : SyncthingActivity(), View.OnClickListener {
                 shareIntent, context.getString(R.string.send_device_id_to)
             )
         )
-    }
-
-    override fun onBackPressed() {
-        if (mIsCreateMode) {
-            showDiscardDialog()
-        } else {
-            super.onBackPressed()
-        }
     }
 
     private fun showDiscardDialog() {

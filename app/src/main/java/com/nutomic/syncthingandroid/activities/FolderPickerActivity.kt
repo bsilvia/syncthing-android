@@ -87,6 +87,26 @@ class FolderPickerActivity : SyncthingActivity(), OnItemClickListener,
             Toast.makeText(this, R.string.kitkat_external_storage_warning, Toast.LENGTH_LONG)
                 .show()
         }
+
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            /**
+             * Goes up a directory, up to the list of roots if there are multiple roots.
+             *
+             *
+             * If we already are in the list of roots, or if we are directly in the only
+             * root folder, we cancel.
+             */
+            override fun handleOnBackPressed() {
+                if (!mRootsAdapter!!.contains(mLocation) && mLocation != null) {
+                    displayFolder(mLocation!!.getParentFile())
+                } else if (mRootsAdapter!!.contains(mLocation) && mRootsAdapter!!.count > 1) {
+                    displayRoot()
+                } else {
+                    setResult(RESULT_CANCELED)
+                    finish()
+                }
+            }
+        })
     }
 
     /**
@@ -274,26 +294,6 @@ class FolderPickerActivity : SyncthingActivity(), OnItemClickListener,
                 if (getItem(i) == file) return true
             }
             return false
-        }
-    }
-
-    /**
-     * Goes up a directory, up to the list of roots if there are multiple roots.
-     *
-     *
-     * If we already are in the list of roots, or if we are directly in the only
-     * root folder, we cancel.
-     */
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        super.onBackPressed()
-        if (!mRootsAdapter!!.contains(mLocation) && mLocation != null) {
-            displayFolder(mLocation!!.getParentFile())
-        } else if (mRootsAdapter!!.contains(mLocation) && mRootsAdapter!!.count > 1) {
-            displayRoot()
-        } else {
-            setResult(RESULT_CANCELED)
-            finish()
         }
     }
 

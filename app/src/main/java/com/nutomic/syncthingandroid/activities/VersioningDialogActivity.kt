@@ -34,6 +34,14 @@ class VersioningDialogActivity : ThemedAppCompatActivity() {
         updateFragmentView(mTypes.indexOf(intent.extras!!.getString("type")))
         initiateFinishBtn()
         initiateSpinner()
+
+
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                saveConfiguration()
+                finish()
+            }
+        })
     }
 
     private fun initiateFinishBtn() {
@@ -110,12 +118,6 @@ class VersioningDialogActivity : ThemedAppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBundle("arguments", mCurrentFragment!!.arguments)
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        saveConfiguration()
-        super.onBackPressed()
     }
 
     companion object {

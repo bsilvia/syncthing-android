@@ -154,6 +154,16 @@ class FolderActivity : SyncthingActivity(), OnServiceConnectedListener,
                 showDeleteDialog()
             }
         }
+
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (mIsCreateMode) {
+                    showDiscardDialog()
+                } else {
+                    finish()
+                }
+            }
+        })
     }
 
     /**
@@ -442,7 +452,7 @@ class FolderActivity : SyncthingActivity(), OnServiceConnectedListener,
             }
 
             android.R.id.home -> {
-                onBackPressed()
+                onBackPressedDispatcher.onBackPressed()
                 return true
             }
 
@@ -459,7 +469,7 @@ class FolderActivity : SyncthingActivity(), OnServiceConnectedListener,
         return getAlertDialogBuilder(this)
             .setMessage(R.string.remove_folder_confirm)
             .setPositiveButton(
-                android.R.string.yes
+                android.R.string.ok
             ) { _: DialogInterface?, _: Int ->
                 val restApi = api
                 restApi?.removeFolder(mFolder!!.id)
@@ -635,15 +645,6 @@ class FolderActivity : SyncthingActivity(), OnServiceConnectedListener,
              * immediately finishes this activity if SyncthingService shuts down.
              */
             api?.updateFolder(mFolder!!)
-        }
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        if (mIsCreateMode) {
-            showDiscardDialog()
-        } else {
-            super.onBackPressed()
         }
     }
 
