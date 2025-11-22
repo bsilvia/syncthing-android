@@ -24,6 +24,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.MarginLayoutParamsCompat
 import androidx.documentfile.provider.DocumentFile
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.gson.Gson
 import com.nutomic.syncthingandroid.R
@@ -69,6 +71,12 @@ class FolderActivity : SyncthingActivity(), OnServiceConnectedListener,
 
     private var mVersioning: Folder.Versioning? = null
 
+    private lateinit var chooseFolderLauncher: ActivityResultLauncher<Intent>
+    private lateinit var folderPickerLauncher: ActivityResultLauncher<Intent>
+    private lateinit var fileVersioningLauncher: ActivityResultLauncher<Intent>
+    private lateinit var folderTypeLauncher: ActivityResultLauncher<Intent>
+    private lateinit var pullOrderLauncher: ActivityResultLauncher<Intent>
+
     private val mTextWatcher: TextWatcher = object : TextWatcherAdapter() {
         override fun afterTextChanged(s: Editable?) {
             mFolder!!.label = binding!!.label.getText().toString()
@@ -107,6 +115,79 @@ class FolderActivity : SyncthingActivity(), OnServiceConnectedListener,
         super.onCreate(savedInstanceState)
         binding = FragmentFolderBinding.inflate(layoutInflater)
         setContentView(binding!!.getRoot())
+
+        // Register Activity Result launchers to replace deprecated startActivityForResult
+        chooseFolderLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val data = result.data
+                mFolderUri = data?.data
+                if (mFolderUri == null) {
+                    return@registerForActivityResult
+                }
+                var targetPath = getAbsolutePathFromSAFUri(this@FolderActivity, mFolderUri)
+                if (targetPath != null) {
+                    targetPath = formatPath(targetPath)
+                }
+                if (targetPath == null || TextUtils.isEmpty(targetPath) || (targetPath == File.separator)) {
+                    mFolder!!.path = ""
+                    mFolderUri = null
+                    checkWriteAndUpdateUI()
+                    Toast.makeText(this, R.string.toast_invalid_folder_selected, Toast.LENGTH_LONG)
+                        .show()
+                    return@registerForActivityResult
+                }
+                mFolder!!.path = cutTrailingSlash(targetPath)
+                Log.v(TAG, "chooseFolderLauncher: Got directory path '${mFolder!!.path}'")
+                checkWriteAndUpdateUI()
+                mFolderNeedsToUpdate = true
+            }
+        }
+
+        folderPickerLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val data = result.data
+                mFolder!!.path = data?.getStringExtra(FolderPickerActivity.EXTRA_RESULT_DIRECTORY)
+                checkWriteAndUpdateUI()
+                mFolderNeedsToUpdate = true
+            }
+        }
+
+        fileVersioningLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val data = result.data
+                if (data?.extras != null) {
+                    updateVersioning(data.extras!!)
+                }
+            }
+        }
+
+        folderTypeLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val data = result.data
+                mFolder!!.type = data?.getStringExtra(FolderTypeDialogActivity.EXTRA_RESULT_FOLDER_TYPE)!!
+                updateFolderTypeDescription()
+                mFolderNeedsToUpdate = true
+            }
+        }
+
+        pullOrderLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val data = result.data
+                mFolder!!.order = data?.getStringExtra(PullOrderDialogActivity.EXTRA_RESULT_PULL_ORDER)
+                updatePullOrderDescription()
+                mFolderNeedsToUpdate = true
+            }
+        }
 
         mIsCreateMode = intent.getBooleanExtra(EXTRA_IS_CREATE, false)
         setTitle(if (mIsCreateMode) R.string.create_folder else R.string.edit_folder)
@@ -182,16 +263,15 @@ class FolderActivity : SyncthingActivity(), OnServiceConnectedListener,
         intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
         intent.putExtra("android.content.extra.SHOW_ADVANCED", true)
         try {
-            startActivityForResult(intent, CHOOSE_FOLDER_REQUEST)
+            chooseFolderLauncher.launch(intent)
         } catch (e: ActivityNotFoundException) {
             Log.e(
                 TAG,
                 "onPathViewClick exception, falling back to built-in FolderPickerActivity.",
                 e
             )
-            startActivityForResult(
-                FolderPickerActivity.createIntent(this, mFolder!!.path, null),
-                FolderPickerActivity.DIRECTORY_REQUEST_CODE
+            folderPickerLauncher.launch(
+                FolderPickerActivity.createIntent(this, mFolder!!.path, null)
             )
         }
     }
@@ -236,19 +316,19 @@ class FolderActivity : SyncthingActivity(), OnServiceConnectedListener,
         // The user selected folder path is writeable, offer to choose from all available folder types.
         val intent = Intent(this, FolderTypeDialogActivity::class.java)
         intent.putExtra(FolderTypeDialogActivity.EXTRA_FOLDER_TYPE, mFolder!!.type)
-        startActivityForResult(intent, FOLDER_TYPE_DIALOG_REQUEST)
+        folderTypeLauncher.launch(intent)
     }
 
     private fun showPullOrderDialog() {
         val intent = Intent(this, PullOrderDialogActivity::class.java)
         intent.putExtra(PullOrderDialogActivity.EXTRA_PULL_ORDER, mFolder!!.order)
-        startActivityForResult(intent, PULL_ORDER_DIALOG_REQUEST)
+        pullOrderLauncher.launch(intent)
     }
 
     private fun showVersioningDialog() {
         val intent = Intent(this, VersioningDialogActivity::class.java)
         intent.putExtras(this.versioningBundle)
-        startActivityForResult(intent, FILE_VERSIONING_DIALOG_REQUEST)
+        fileVersioningLauncher.launch(intent)
     }
 
     private val versioningBundle: Bundle
@@ -476,66 +556,11 @@ class FolderActivity : SyncthingActivity(), OnServiceConnectedListener,
                 mFolderNeedsToUpdate = false
                 finish()
             }
-            .setNegativeButton(android.R.string.no, null)
+            .setNegativeButton(android.R.string.cancel, null)
             .create()
     }
 
-    public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
 
-        when (resultCode) {
-            RESULT_OK if requestCode == CHOOSE_FOLDER_REQUEST -> {
-                mFolderUri = data?.data
-                if (mFolderUri == null) {
-                    return
-                }
-                // Get the folder path unix style, e.g. "/storage/0000-0000/DCIM"
-                var targetPath = getAbsolutePathFromSAFUri(this@FolderActivity, mFolderUri)
-                if (targetPath != null) {
-                    targetPath = formatPath(targetPath)
-                }
-                if (targetPath == null || TextUtils.isEmpty(targetPath) || (targetPath == File.separator)) {
-                    mFolder!!.path = ""
-                    mFolderUri = null
-                    checkWriteAndUpdateUI()
-                    // Show message to the user suggesting to select a folder on internal or external storage.
-                    Toast.makeText(this, R.string.toast_invalid_folder_selected, Toast.LENGTH_LONG)
-                        .show()
-                    return
-                }
-                mFolder!!.path = cutTrailingSlash(targetPath)
-                Log.v(
-                    TAG,
-                    "onActivityResult/CHOOSE_FOLDER_REQUEST: Got directory path '" + mFolder!!.path + "'"
-                )
-                checkWriteAndUpdateUI()
-                // Postpone sending the config changes using syncthing REST API.
-                mFolderNeedsToUpdate = true
-            }
-            RESULT_OK if requestCode == FolderPickerActivity.DIRECTORY_REQUEST_CODE -> {
-                mFolder!!.path =
-                    data?.getStringExtra(FolderPickerActivity.EXTRA_RESULT_DIRECTORY)
-                checkWriteAndUpdateUI()
-                // Postpone sending the config changes using syncthing REST API.
-                mFolderNeedsToUpdate = true
-            }
-            RESULT_OK if requestCode == FILE_VERSIONING_DIALOG_REQUEST -> {
-                updateVersioning(data?.extras!!)
-            }
-            RESULT_OK if requestCode == FOLDER_TYPE_DIALOG_REQUEST -> {
-                mFolder!!.type =
-                    data?.getStringExtra(FolderTypeDialogActivity.EXTRA_RESULT_FOLDER_TYPE)!!
-                updateFolderTypeDescription()
-                mFolderNeedsToUpdate = true
-            }
-            RESULT_OK if requestCode == PULL_ORDER_DIALOG_REQUEST -> {
-                mFolder!!.order =
-                    data?.getStringExtra(PullOrderDialogActivity.EXTRA_RESULT_PULL_ORDER)
-                updatePullOrderDescription()
-                mFolderNeedsToUpdate = true
-            }
-        }
-    }
 
     /**
      * Prerequisite: mFolder.path must be non-empty
