@@ -36,6 +36,8 @@ eclipse-java-style.xml
 .classpath
 .project
 .settings
+settings.json
+.vscode
 
 # Gradle wrapper
 gradle/wrapper/gradle/
