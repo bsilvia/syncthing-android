@@ -492,7 +492,7 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
             targetEnv.put("all_proxy", "socks5://localhost:9050")
             targetEnv.put("ALL_PROXY_NO_FALLBACK", "1")
         } else {
-            val socksProxyAddress: String = mPreferences.getString(
+            val socksProxyAddress: String = mPreferences!!.getString(
                 com.nutomic.syncthingandroid.service.Constants.PREF_SOCKS_PROXY_ADDRESS,
                 ""
             )!!
@@ -500,7 +500,7 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
                 targetEnv.put("all_proxy", socksProxyAddress)
             }
 
-            val httpProxyAddress: String = mPreferences.getString(
+            val httpProxyAddress: String = mPreferences!!.getString(
                 com.nutomic.syncthingandroid.service.Constants.PREF_HTTP_PROXY_ADDRESS,
                 ""
             )!!

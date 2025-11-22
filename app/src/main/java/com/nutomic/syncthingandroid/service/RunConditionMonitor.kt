@@ -158,14 +158,14 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
         val prefRunOnWifi = mPreferences!!.getBoolean(Constants.PREF_RUN_ON_WIFI, true)
         val prefRunOnMeteredWifi =
             mPreferences!!.getBoolean(Constants.PREF_RUN_ON_METERED_WIFI, false)
-        val whitelistedWifiSsids: MutableSet<String?> = mPreferences.getStringSet(
+        val whitelistedWifiSsids: MutableSet<String?> = mPreferences!!.getStringSet(
             com.nutomic.syncthingandroid.service.Constants.PREF_WIFI_SSID_WHITELIST,
             java.util.HashSet<kotlin.String?>()
         )!!
         val prefWifiWhitelistEnabled = !whitelistedWifiSsids.isEmpty()
         val prefRunInFlightMode =
             mPreferences!!.getBoolean(Constants.PREF_RUN_IN_FLIGHT_MODE, false)
-        val prefPowerSource: String = mPreferences.getString(
+        val prefPowerSource: String = mPreferences!!.getString(
             com.nutomic.syncthingandroid.service.Constants.PREF_POWER_SOURCE,
             RunConditionMonitor.Companion.POWER_SOURCE_CHARGER_BATTERY
         )!!

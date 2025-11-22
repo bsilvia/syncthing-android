@@ -140,7 +140,7 @@ object Util {
     fun nativeBinaryCanWriteToPath(context: Context?, absoluteFolderPath: String?): Boolean {
         val TOUCH_FILE_NAME = ".stwritetest"
         var useRoot = false
-        val prefUseRoot = PreferenceManager.getDefaultSharedPreferences(context)
+        val prefUseRoot = PreferenceManager.getDefaultSharedPreferences(context!!)
             .getBoolean(Constants.PREF_USE_ROOT, false)
         if (prefUseRoot && Shell.SU.available()) {
             useRoot = true

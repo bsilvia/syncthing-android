@@ -4,8 +4,6 @@ import static android.text.TextUtils.isEmpty;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 import static android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN;
-import static com.nutomic.syncthingandroid.service.SyncthingService.State.ACTIVE;
-import static com.nutomic.syncthingandroid.util.Compression.METADATA;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -45,14 +43,10 @@ import java.util.List;
  */
 public class DeviceActivity extends SyncthingActivity implements View.OnClickListener {
 
-    public static final String EXTRA_NOTIFICATION_ID =
-            "com.nutomic.syncthingandroid.activities.DeviceActivity.NOTIFICATION_ID";
-    public static final String EXTRA_DEVICE_ID =
-            "com.nutomic.syncthingandroid.activities.DeviceActivity.DEVICE_ID";
-    public static final String EXTRA_DEVICE_NAME =
-            "com.nutomic.syncthingandroid.activities.DeviceActivity.DEVICE_NAME";
-    public static final String EXTRA_IS_CREATE =
-            "com.nutomic.syncthingandroid.activities.DeviceActivity.IS_CREATE";
+    public static final String EXTRA_NOTIFICATION_ID = "com.nutomic.syncthingandroid.activities.DeviceActivity.NOTIFICATION_ID";
+    public static final String EXTRA_DEVICE_ID = "com.nutomic.syncthingandroid.activities.DeviceActivity.DEVICE_ID";
+    public static final String EXTRA_DEVICE_NAME = "com.nutomic.syncthingandroid.activities.DeviceActivity.DEVICE_NAME";
+    public static final String EXTRA_IS_CREATE = "com.nutomic.syncthingandroid.activities.DeviceActivity.IS_CREATE";
 
     private static final String TAG = "DeviceSettingsFragment";
     private static final String IS_SHOWING_DISCARD_DIALOG = "DISCARD_FOLDER_DIALOG_STATE";
@@ -119,8 +113,7 @@ public class DeviceActivity extends SyncthingActivity implements View.OnClickLis
         }
     };
 
-    private final CompoundButton.OnCheckedChangeListener mCheckedListener =
-            new CompoundButton.OnCheckedChangeListener() {
+    private final CompoundButton.OnCheckedChangeListener mCheckedListener = new CompoundButton.OnCheckedChangeListener() {
         @Override
         public void onCheckedChanged(CompoundButton view, boolean isChecked) {
             switch (view.getId()) {
@@ -149,33 +142,32 @@ public class DeviceActivity extends SyncthingActivity implements View.OnClickLis
         binding.qrButton.setOnClickListener(this);
         binding.compressionContainer.setOnClickListener(this);
 
-        if (savedInstanceState != null){
+        if (savedInstanceState != null) {
             if (mDevice == null) {
                 mDevice = new Gson().fromJson(savedInstanceState.getString("device"), Device.class);
             }
             restoreDialogStates(savedInstanceState);
         }
         if (mIsCreateMode) {
-           if (mDevice == null) {
+            if (mDevice == null) {
                 initDevice();
             }
-        }
-        else {
+        } else {
             prepareEditMode();
         }
     }
 
     private void restoreDialogStates(Bundle savedInstanceState) {
-        if (savedInstanceState.getBoolean(IS_SHOWING_COMPRESSION_DIALOG)){
+        if (savedInstanceState.getBoolean(IS_SHOWING_COMPRESSION_DIALOG)) {
             showCompressionDialog();
         }
 
-        if (savedInstanceState.getBoolean(IS_SHOWING_DELETE_DIALOG)){
+        if (savedInstanceState.getBoolean(IS_SHOWING_DELETE_DIALOG)) {
             showDeleteDialog();
         }
 
-        if (mIsCreateMode){
-            if (savedInstanceState.getBoolean(IS_SHOWING_DISCARD_DIALOG)){
+        if (mIsCreateMode) {
+            if (savedInstanceState.getBoolean(IS_SHOWING_DISCARD_DIALOG)) {
                 showDiscardDialog();
             }
         }
@@ -186,7 +178,8 @@ public class DeviceActivity extends SyncthingActivity implements View.OnClickLis
         super.onDestroy();
         SyncthingService syncthingService = getService();
         if (syncthingService != null) {
-            syncthingService.getNotificationHandler().cancelConsentNotification(getIntent().getIntExtra(EXTRA_NOTIFICATION_ID, 0));
+            syncthingService.getNotificationHandler()
+                    .cancelConsentNotification(getIntent().getIntExtra(EXTRA_NOTIFICATION_ID, 0));
             syncthingService.unregisterOnServiceStateChangeListener(this::onServiceStateChange);
         }
         binding.id.removeTextChangedListener(mIdTextWatcher);
@@ -206,18 +199,20 @@ public class DeviceActivity extends SyncthingActivity implements View.OnClickLis
     }
 
     /**
-     * Save current settings in case we are in create mode and they aren't yet stored in the config.
+     * Save current settings in case we are in create mode and they aren't yet
+     * stored in the config.
      */
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString("device", new Gson().toJson(mDevice));
-        if (mIsCreateMode){
+        if (mIsCreateMode) {
             outState.putBoolean(IS_SHOWING_DISCARD_DIALOG, mDiscardDialog != null && mDiscardDialog.isShowing());
             Util.dismissDialogSafe(mDiscardDialog, this);
         }
 
-        outState.putBoolean(IS_SHOWING_COMPRESSION_DIALOG, mCompressionDialog != null && mCompressionDialog.isShowing());
+        outState.putBoolean(IS_SHOWING_COMPRESSION_DIALOG,
+                mCompressionDialog != null && mCompressionDialog.isShowing());
         Util.dismissDialogSafe(mCompressionDialog, this);
 
         outState.putBoolean(IS_SHOWING_DELETE_DIALOG, mDeleteDialog != null && mDeleteDialog.isShowing());
@@ -227,14 +222,16 @@ public class DeviceActivity extends SyncthingActivity implements View.OnClickLis
     private void onServiceConnected() {
         Log.v(TAG, "onServiceConnected");
         SyncthingService syncthingService = (SyncthingService) getService();
-        syncthingService.getNotificationHandler().cancelConsentNotification(getIntent().getIntExtra(EXTRA_NOTIFICATION_ID, 0));
+        syncthingService.getNotificationHandler()
+                .cancelConsentNotification(getIntent().getIntExtra(EXTRA_NOTIFICATION_ID, 0));
         syncthingService.registerOnServiceStateChangeListener(this::onServiceStateChange);
     }
 
     /**
      * Sets version and current address of the device.
      * <p/>
-     * NOTE: This is only called once on startup, should be called more often to properly display
+     * NOTE: This is only called once on startup, should be called more often to
+     * properly display
      * version/address changes.
      */
     private void onReceiveConnections(Connections connections) {
@@ -248,7 +245,7 @@ public class DeviceActivity extends SyncthingActivity implements View.OnClickLis
     }
 
     private void onServiceStateChange(SyncthingService.State currentState) {
-        if (currentState != ACTIVE) {
+        if (currentState != SyncthingService.State.ACTIVE) {
             finish();
             return;
         }
@@ -320,15 +317,14 @@ public class DeviceActivity extends SyncthingActivity implements View.OnClickLis
                             .show();
                     return true;
                 }
-                getApi().addDevice(mDevice, error ->
-                        Toast.makeText(this, error, Toast.LENGTH_LONG).show());
+                getApi().addDevice(mDevice, error -> Toast.makeText(this, error, Toast.LENGTH_LONG).show());
                 finish();
                 return true;
             case R.id.share_device_id:
                 shareDeviceId(this, mDevice.deviceID);
                 return true;
             case R.id.remove:
-               showDeleteDialog();
+                showDeleteDialog();
                 return true;
             case android.R.id.home:
                 onBackPressed();
@@ -338,13 +334,12 @@ public class DeviceActivity extends SyncthingActivity implements View.OnClickLis
         }
     }
 
-
-    private void showDeleteDialog(){
+    private void showDeleteDialog() {
         mDeleteDialog = createDeleteDialog();
         mDeleteDialog.show();
     }
 
-    private Dialog createDeleteDialog(){
+    private Dialog createDeleteDialog() {
         return Util.getAlertDialogBuilder(this)
                 .setMessage(R.string.remove_device_confirm)
                 .setPositiveButton(android.R.string.yes, (dialogInterface, i) -> {
@@ -378,7 +373,7 @@ public class DeviceActivity extends SyncthingActivity implements View.OnClickLis
         mDevice.name = getIntent().getStringExtra(EXTRA_DEVICE_NAME);
         mDevice.deviceID = getIntent().getStringExtra(EXTRA_DEVICE_ID);
         mDevice.addresses = DYNAMIC_ADDRESS;
-        mDevice.compression = METADATA.getValue(this);
+        mDevice.compression = Compression.METADATA.getValue(this);
         mDevice.introducer = false;
         mDevice.paused = false;
     }
@@ -420,7 +415,7 @@ public class DeviceActivity extends SyncthingActivity implements View.OnClickLis
     public void onClick(View v) {
         if (v.equals(binding.compressionContainer)) {
             showCompressionDialog();
-        } else if (v.equals(binding.qrButton)){
+        } else if (v.equals(binding.qrButton)) {
             Intent qrIntent = QRScannerActivity.intent(this);
             startActivityForResult(qrIntent, QR_SCAN_REQUEST_CODE);
         } else if (v.equals(binding.idContainer)) {
@@ -428,12 +423,12 @@ public class DeviceActivity extends SyncthingActivity implements View.OnClickLis
         }
     }
 
-    private void showCompressionDialog(){
+    private void showCompressionDialog() {
         mCompressionDialog = createCompressionDialog();
         mCompressionDialog.show();
     }
 
-    private Dialog createCompressionDialog(){
+    private Dialog createCompressionDialog() {
         return Util.getAlertDialogBuilder(this)
                 .setTitle(R.string.compression)
                 .setSingleChoiceItems(R.array.compress_entries,
@@ -458,13 +453,12 @@ public class DeviceActivity extends SyncthingActivity implements View.OnClickLis
     public void onBackPressed() {
         if (mIsCreateMode) {
             showDiscardDialog();
-        }
-        else {
+        } else {
             super.onBackPressed();
         }
     }
 
-    private void showDiscardDialog(){
+    private void showDiscardDialog() {
         mDiscardDialog = createDiscardDialog();
         mDiscardDialog.show();
     }

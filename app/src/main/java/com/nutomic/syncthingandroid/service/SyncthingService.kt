@@ -204,7 +204,7 @@ class SyncthingService : Service() {
             // mApi is not null due to State.ACTIVE
             checkNotNull(this.api)
             api!!.ignoreDevice(
-                intent.getStringExtra(EXTRA_DEVICE_ID), intent.getStringExtra(
+                intent.getStringExtra(EXTRA_DEVICE_ID)!!, intent.getStringExtra(
                     EXTRA_DEVICE_NAME
                 ), intent.getStringExtra(EXTRA_DEVICE_ADDRESS)
             )
@@ -218,9 +218,9 @@ class SyncthingService : Service() {
             // mApi is not null due to State.ACTIVE
             checkNotNull(this.api)
             api!!.ignoreFolder(
-                intent.getStringExtra(EXTRA_DEVICE_ID), intent.getStringExtra(
+                intent.getStringExtra(EXTRA_DEVICE_ID)!!, intent.getStringExtra(
                     EXTRA_FOLDER_ID
-                ), intent.getStringExtra(EXTRA_FOLDER_LABEL)
+                )!!, intent.getStringExtra(EXTRA_FOLDER_LABEL)
             )
             notificationHandler!!.cancelConsentNotification(
                 intent.getIntExtra(
@@ -230,7 +230,7 @@ class SyncthingService : Service() {
             )
         } else if (ACTION_OVERRIDE_CHANGES == intent.action && this.currentState == State.ACTIVE) {
             checkNotNull(this.api)
-            api!!.overrideChanges(intent.getStringExtra(EXTRA_FOLDER_ID))
+            api!!.overrideChanges(intent.getStringExtra(EXTRA_FOLDER_ID)!!)
         }
         return START_STICKY
     }
