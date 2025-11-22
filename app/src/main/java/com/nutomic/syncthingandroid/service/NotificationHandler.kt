@@ -4,6 +4,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -78,12 +79,9 @@ class NotificationHandler(context: Context) {
         }
     }
 
-    private fun getNotificationBuilder(channel: NotificationChannel): NotificationCompat.Builder {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            return NotificationCompat.Builder(mContext, channel.getId())
-        } else {
-            return NotificationCompat.Builder(mContext)
-        }
+    private fun getNotificationBuilder(channel: NotificationChannel?): NotificationCompat.Builder {
+        val channelId = channel?.id ?: CHANNEL_INFO
+        return NotificationCompat.Builder(mContext, channelId)
     }
 
     /**
@@ -123,7 +121,7 @@ class NotificationHandler(context: Context) {
         if (startForegroundService != lastStartForegroundService) {
             if (!startForegroundService) {
                 Log.v(TAG, "Stopping foreground service")
-                service.stopForeground(false)
+                service.stopForeground(Service.STOP_FOREGROUND_DETACH)
             }
         }
 

@@ -9,8 +9,7 @@ import android.os.PowerManager
 import android.os.SystemClock
 import android.text.TextUtils
 import android.util.Log
-import com.google.common.base.Charsets
-import com.google.common.io.Files
+import kotlin.text.Charsets
 import com.nutomic.syncthingandroid.R
 import com.nutomic.syncthingandroid.SyncthingApp
 import com.nutomic.syncthingandroid.util.Util.runShellCommand
@@ -403,7 +402,11 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
                     Log.println(priority, TAG_NATIVE, line!!)
 
                     if (saveLog) {
-                        Files.append(line + "\n", mLogFile, Charsets.UTF_8)
+                        try {
+                            mLogFile.appendText(line + "\n", Charsets.UTF_8)
+                        } catch (e: IOException) {
+                            Log.w(TAG, "log: Failed to append to log file", e)
+                        }
                     }
                 }
             } catch (e: IOException) {

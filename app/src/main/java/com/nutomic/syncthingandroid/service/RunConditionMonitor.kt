@@ -9,8 +9,10 @@ import android.content.SharedPreferences
 import android.content.SyncStatusObserver
 import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
+import android.net.NetworkCapabilities
 import android.os.BatteryManager
 import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
 import android.util.Log
 import com.nutomic.syncthingandroid.SyncthingApp
@@ -62,7 +64,7 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
         /**
          * Register broadcast receivers.
          */
-        // NetworkReceiver
+        // NetworkReceiver (legacy broadcast used for older platforms)
         ReceiverManager.registerReceiver(
             mContext,
             NetworkReceiver(),
@@ -105,12 +107,8 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
             if (Intent.ACTION_POWER_CONNECTED == intent.getAction()
                 || Intent.ACTION_POWER_DISCONNECTED == intent.getAction()
             ) {
-                val handler = Handler()
-                handler.postDelayed(object : Runnable {
-                    override fun run() {
-                        updateShouldRunDecision()
-                    }
-                }, 5000)
+                val handler = Handler(Looper.getMainLooper())
+                handler.postDelayed({ updateShouldRunDecision() }, 5000)
             }
         }
     }
@@ -320,76 +318,39 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
 
     private val isFlightMode: Boolean
         get() {
-            val cm =
-                mContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val ni = cm.getActiveNetworkInfo()
-            return ni == null
+            return networkCapabilities() == null
         }
 
     private val isMeteredNetworkConnection: Boolean
         get() {
-            val cm =
-                mContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val ni = cm.getActiveNetworkInfo()
-            if (ni == null) {
-                // In flight mode.
-                return false
-            }
-            if (!ni.isConnected()) {
-                // No network connection.
-                return false
-            }
+            val cm = mContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val active = cm.activeNetwork ?: return false
             return cm.isActiveNetworkMetered()
         }
 
     private val isMobileDataConnection: Boolean
         get() {
-            val cm =
-                mContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val ni = cm.getActiveNetworkInfo()
-            if (ni == null) {
-                // In flight mode.
-                return false
-            }
-            if (!ni.isConnected()) {
-                // No network connection.
-                return false
-            }
-            when (ni.getType()) {
-                ConnectivityManager.TYPE_BLUETOOTH, ConnectivityManager.TYPE_MOBILE, ConnectivityManager.TYPE_MOBILE_DUN, ConnectivityManager.TYPE_MOBILE_HIPRI -> return true
-                else -> return false
-            }
+            val nc = networkCapabilities() ?: return false
+            return nc.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
         }
 
     private val isWifiOrEthernetConnection: Boolean
         get() {
-            val cm =
-                mContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val ni = cm.getActiveNetworkInfo()
-            if (ni == null) {
-                // In flight mode.
-                return false
-            }
-            if (!ni.isConnected()) {
-                // No network connection.
-                return false
-            }
-            when (ni.getType()) {
-                ConnectivityManager.TYPE_WIFI, ConnectivityManager.TYPE_WIMAX, ConnectivityManager.TYPE_ETHERNET -> return true
-                else -> return false
-            }
+            val nc = networkCapabilities() ?: return false
+            return nc.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || nc.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) || nc.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH)
         }
 
     private fun isWifiConnectionWhitelisted(whitelistedSsids: MutableSet<String?>): Boolean {
         val wifiManager = mContext.getApplicationContext()
             .getSystemService(Context.WIFI_SERVICE) as WifiManager
-        val wifiInfo = wifiManager.getConnectionInfo()
+        @Suppress("DEPRECATION")
+        val wifiInfo = wifiManager.connectionInfo
         if (wifiInfo == null) {
             // May be null, if wifi has been turned off in the meantime.
             Log.d(TAG, "isWifiConnectionWhitelisted: SSID unknown due to wifiInfo == null")
             return false
         }
-        val wifiSsid = wifiInfo.getSSID()
+        val wifiSsid = wifiInfo.ssid
         if (wifiSsid == null) {
             Log.w(
                 TAG,
@@ -398,6 +359,12 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
             return false
         }
         return whitelistedSsids.contains(wifiSsid)
+    }
+
+    private fun networkCapabilities(): NetworkCapabilities? {
+        val cm = mContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val active = cm.activeNetwork ?: return null
+        return cm.getNetworkCapabilities(active)
     }
 
     companion object {

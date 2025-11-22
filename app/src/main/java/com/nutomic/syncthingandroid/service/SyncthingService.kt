@@ -4,8 +4,8 @@ import android.app.Service
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
-import com.google.common.io.Files
 import com.nutomic.syncthingandroid.R
 import com.nutomic.syncthingandroid.SyncthingApp
 import com.nutomic.syncthingandroid.http.PollWebGuiAvailableTask
@@ -124,7 +124,7 @@ class SyncthingService : Service() {
         Log.v(TAG, "onCreate")
         super.onCreate()
         (application as SyncthingApp).component()!!.inject(this)
-        mHandler = Handler()
+        mHandler = Handler(Looper.getMainLooper())
 
         // Executor for background tasks that previously used AsyncTask
         mExecutor = Executors.newSingleThreadExecutor()
@@ -614,26 +614,15 @@ class SyncthingService : Service() {
     fun exportConfig() {
         Constants.EXPORT_PATH.mkdirs()
         try {
-            Files.copy(
-                Constants.getConfigFile(this),
-                File(Constants.EXPORT_PATH, Constants.CONFIG_FILE)
-            )
-            Files.copy(
-                Constants.getPrivateKeyFile(this),
-                File(Constants.EXPORT_PATH, Constants.PRIVATE_KEY_FILE)
-            )
-            Files.copy(
-                Constants.getPublicKeyFile(this),
-                File(Constants.EXPORT_PATH, Constants.PUBLIC_KEY_FILE)
-            )
-            Files.copy(
-                Constants.getHttpsCertFile(this),
-                File(Constants.EXPORT_PATH, Constants.HTTPS_CERT_FILE)
-            )
-            Files.copy(
-                Constants.getHttpsKeyFile(this),
-                File(Constants.EXPORT_PATH, Constants.HTTPS_KEY_FILE)
-            )
+            try {
+                Constants.getConfigFile(this).copyTo(File(Constants.EXPORT_PATH, Constants.CONFIG_FILE), overwrite = true)
+                Constants.getPrivateKeyFile(this).copyTo(File(Constants.EXPORT_PATH, Constants.PRIVATE_KEY_FILE), overwrite = true)
+                Constants.getPublicKeyFile(this).copyTo(File(Constants.EXPORT_PATH, Constants.PUBLIC_KEY_FILE), overwrite = true)
+                Constants.getHttpsCertFile(this).copyTo(File(Constants.EXPORT_PATH, Constants.HTTPS_CERT_FILE), overwrite = true)
+                Constants.getHttpsKeyFile(this).copyTo(File(Constants.EXPORT_PATH, Constants.HTTPS_KEY_FILE), overwrite = true)
+            } catch (e: IOException) {
+                Log.w(TAG, "Failed to export config", e)
+            }
         } catch (e: IOException) {
             Log.w(TAG, "Failed to export config", e)
         }
@@ -652,17 +641,17 @@ class SyncthingService : Service() {
         val httpsKey = File(Constants.EXPORT_PATH, Constants.HTTPS_KEY_FILE)
         if (!config.exists() || !privateKey.exists() || !publicKey.exists()) return false
         shutdown(State.INIT) {
-            try {
-                Files.copy(config, Constants.getConfigFile(this))
-                Files.copy(privateKey, Constants.getPrivateKeyFile(this))
-                Files.copy(publicKey, Constants.getPublicKeyFile(this))
-            } catch (e: IOException) {
-                Log.w(TAG, "Failed to import config", e)
-            }
+                try {
+                    config.copyTo(Constants.getConfigFile(this), overwrite = true)
+                    privateKey.copyTo(Constants.getPrivateKeyFile(this), overwrite = true)
+                    publicKey.copyTo(Constants.getPublicKeyFile(this), overwrite = true)
+                } catch (e: IOException) {
+                    Log.w(TAG, "Failed to import config", e)
+                }
             if (httpsCert.exists() && httpsKey.exists()) {
                 try {
-                    Files.copy(httpsCert, Constants.getHttpsCertFile(this))
-                    Files.copy(httpsKey, Constants.getHttpsKeyFile(this))
+                    httpsCert.copyTo(Constants.getHttpsCertFile(this), overwrite = true)
+                    httpsKey.copyTo(Constants.getHttpsKeyFile(this), overwrite = true)
                 } catch (e: IOException) {
                     Log.w(TAG, "Failed to import HTTPS config files", e)
                 }
