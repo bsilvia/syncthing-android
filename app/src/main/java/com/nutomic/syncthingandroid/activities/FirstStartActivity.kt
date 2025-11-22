@@ -105,7 +105,7 @@ class FirstStartActivity : Activity() {
         val current = binding!!.viewPager.currentItem - 1
         if (current >= 0) {
             // Move to previous slider.
-            binding!!.viewPager.setCurrentItem(current)
+            binding!!.viewPager.currentItem = current
             if (current == 0) {
                 binding!!.btnBack.visibility = View.GONE
             }
@@ -143,7 +143,7 @@ class FirstStartActivity : Activity() {
         var next = binding!!.viewPager.currentItem + 1
         while (next < slides.size) {
             if (!shouldSkipSlide(slides[next])) {
-                binding!!.viewPager.setCurrentItem(next)
+                binding!!.viewPager.currentItem = next
                 binding!!.btnBack.visibility = View.VISIBLE
                 break
             }
