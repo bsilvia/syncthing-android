@@ -287,8 +287,8 @@ class RestApi(
 
             val remoteIgnoredDevice = RemoteIgnoredDevice()
             remoteIgnoredDevice.deviceID = deviceId
-            remoteIgnoredDevice.address = deviceAddress
-            remoteIgnoredDevice.name = deviceName
+            remoteIgnoredDevice.address = deviceAddress!!
+            remoteIgnoredDevice.name = deviceName!!
             remoteIgnoredDevice.time = dateFormat.format(Date())
             mConfig!!.remoteIgnoredDevices!!.add(remoteIgnoredDevice)
             sendConfig()
@@ -325,7 +325,7 @@ class RestApi(
                      */
                     val ignoredFolder = IgnoredFolder()
                     ignoredFolder.id = folderId
-                    ignoredFolder.label = folderLabel
+                    ignoredFolder.label = folderLabel!!
                     ignoredFolder.time = dateFormat.format(Date())
                     device.ignoredFolders!!.add(ignoredFolder)
                     //                    if (BuildConfig.DEBUG) {
@@ -835,10 +835,10 @@ class RestApi(
          */
         private val FOLDERS_COMPARATOR = Comparator { lhs: Folder?, rhs: Folder? ->
             val lhsLabel =
-                if (lhs!!.label != null && !lhs.label.isEmpty()) lhs.label else lhs.id
+                if (lhs!!.label != null && !lhs.label!!.isEmpty()) lhs.label else lhs.id
             val rhsLabel =
-                if (rhs!!.label != null && !rhs.label.isEmpty()) rhs.label else rhs.id
-            lhsLabel.compareTo(rhsLabel)
+                if (rhs!!.label != null && !rhs.label!!.isEmpty()) rhs.label else rhs.id
+            lhsLabel!!.compareTo(rhsLabel!!)
         }
     }
 }

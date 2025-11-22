@@ -197,7 +197,7 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
         // Power saving
         if (prefRespectPowerSaving && this.isPowerSaving) {
             Log.v(TAG, "decideShouldRun: prefRespectPowerSaving && isPowerSaving")
-            blockerReasons.add(BlockerReason.POWERSAVING_ENABLED)
+            blockerReasons.add(BlockerReason.POWER_SAVING_ENABLED)
         }
 
         // Android global AutoSync setting.
@@ -255,7 +255,7 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
         Log.v(TAG, "decideShouldRun: return false")
         if (blockerReasons.isEmpty()) {
             if (this.isFlightMode) {
-                blockerReasons.add(BlockerReason.NO_NETWORK_OR_FLIGHTMODE)
+                blockerReasons.add(BlockerReason.NO_NETWORK_OR_FLIGHT_MODE)
             } else if (!prefRunOnWifi && !prefRunOnMobileData) {
                 blockerReasons.add(BlockerReason.NO_ALLOWED_NETWORK)
             } else if (prefRunOnMobileData) {

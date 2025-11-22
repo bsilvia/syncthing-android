@@ -139,7 +139,7 @@ public abstract class StateDialogActivity extends SyncthingActivity {
                 count++;
                 message.append("\n");
                 if (reasons.size() > 1) message.append(count + ". ");
-                message.append(this.getString(reason.getResId()));
+                message.append(this.getString(reason.resId));
             }
         }
         return message;

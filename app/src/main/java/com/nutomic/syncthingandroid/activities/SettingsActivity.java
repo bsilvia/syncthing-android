@@ -40,6 +40,7 @@ import com.nutomic.syncthingandroid.views.WifiSsidPreference;
 import java.lang.ref.WeakReference;
 import java.security.InvalidParameterException;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -338,7 +339,8 @@ public class SettingsActivity extends SyncthingActivity {
             mGui = mApi.getGui();
 
             Joiner joiner = Joiner.on(", ");
-            mDeviceName.setText(mApi.getLocalDevice().name);
+            mDeviceName.setText(Objects.requireNonNull(mApi.getLocalDevice()).name);
+            assert mOptions.listenAddresses != null;
             mListenAddresses.setText(joiner.join(mOptions.listenAddresses));
             mMaxRecvKbps.setText(Integer.toString(mOptions.maxRecvKbps));
             mMaxSendKbps.setText(Integer.toString(mOptions.maxSendKbps));
@@ -346,10 +348,14 @@ public class SettingsActivity extends SyncthingActivity {
             mLocalAnnounceEnabled.setChecked(mOptions.localAnnounceEnabled);
             mGlobalAnnounceEnabled.setChecked(mOptions.globalAnnounceEnabled);
             mRelaysEnabled.setChecked(mOptions.relaysEnabled);
+            assert mOptions.globalAnnounceServers != null;
             mGlobalAnnounceServers.setText(joiner.join(mOptions.globalAnnounceServers));
             mAddress.setText(mGui.address);
             mApi.getSystemInfo(systemInfo ->
-                    mUrAccepted.setChecked(mOptions.isUsageReportingAccepted(systemInfo.urVersionMax)));
+            {
+                assert systemInfo != null;
+                mUrAccepted.setChecked(mOptions.isUsageReportingAccepted(systemInfo.urVersionMax));
+            });
         }
 
         @Override
