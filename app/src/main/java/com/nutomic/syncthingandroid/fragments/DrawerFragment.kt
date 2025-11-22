@@ -119,7 +119,6 @@ class DrawerFragment : Fragment(), View.OnClickListener {
         mExitButton!!.visibility = if (alwaysInBackground) View.GONE else View.VISIBLE
     }
 
-    @Deprecated("Deprecated in Java")
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         mActivity = activity as MainActivity?

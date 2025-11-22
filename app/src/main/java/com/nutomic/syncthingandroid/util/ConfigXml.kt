@@ -78,16 +78,16 @@ class ConfigXml(private val mContext: Context) {
         }
         try {
             val db = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-            Log.d(TAG, "Trying to read '" + mConfigFile + "'")
+            Log.d(TAG, "Trying to read '$mConfigFile'")
             mConfig = db.parse(mConfigFile)
         } catch (e: SAXException) {
-            Log.w(TAG, "Cannot read '" + mConfigFile + "'", e)
+            Log.w(TAG, "Cannot read '$mConfigFile'", e)
             throw OpenConfigException()
         } catch (e: ParserConfigurationException) {
-            Log.w(TAG, "Cannot read '" + mConfigFile + "'", e)
+            Log.w(TAG, "Cannot read '$mConfigFile'", e)
             throw OpenConfigException()
         } catch (e: IOException) {
-            Log.w(TAG, "Cannot read '" + mConfigFile + "'", e)
+            Log.w(TAG, "Cannot read '$mConfigFile'", e)
             throw OpenConfigException()
         }
         Log.i(TAG, "Loaded Syncthing config file")
@@ -99,8 +99,8 @@ class ConfigXml(private val mContext: Context) {
                 if (Constants.osSupportsTLS12()) "https" else "http"
             try {
                 return URL(
-                    urlProtocol + "://" + this.guiElement.getElementsByTagName("address").item(0)
-                        .getTextContent()
+                    "$urlProtocol://" + this.guiElement.getElementsByTagName("address").item(0)
+                        .textContent
                 )
             } catch (e: MalformedURLException) {
                 throw RuntimeException("Failed to parse web interface URL", e)
@@ -108,10 +108,10 @@ class ConfigXml(private val mContext: Context) {
         }
 
     val apiKey: String?
-        get() = this.guiElement.getElementsByTagName("apikey").item(0).getTextContent()
+        get() = this.guiElement.getElementsByTagName("apikey").item(0).textContent
 
     val userName: String?
-        get() = this.guiElement.getElementsByTagName("user").item(0).getTextContent()
+        get() = this.guiElement.getElementsByTagName("user").item(0).textContent
 
     /**
      * Updates the config file.
@@ -127,10 +127,10 @@ class ConfigXml(private val mContext: Context) {
         changed = migrateSyncthingOptions()
 
         /* Get refs to important config objects */
-        val folders = mConfig!!.getDocumentElement().getElementsByTagName("folder")
+        val folders = mConfig!!.documentElement.getElementsByTagName("folder")
 
         /* Section - folders */
-        for (i in 0..<folders.getLength()) {
+        for (i in 0..<folders.length) {
             val r = folders.item(i) as Element
             // Set ignorePerms attribute.
             if (!r.hasAttribute("ignorePerms") ||
@@ -168,7 +168,7 @@ class ConfigXml(private val mContext: Context) {
             gui.appendChild(password)
         }
         val apikey = this.apiKey
-        val pw = password.getTextContent()
+        val pw = password.textContent
         var passwordOk: Boolean
         try {
             passwordOk = !TextUtils.isEmpty(pw) && BCrypt.checkpw(apikey, pw)
@@ -178,22 +178,22 @@ class ConfigXml(private val mContext: Context) {
         }
         if (!passwordOk) {
             Log.i(TAG, "Updating password")
-            password.setTextContent(BCrypt.hashpw(apikey, BCrypt.gensalt(4)))
+            password.textContent = BCrypt.hashpw(apikey, BCrypt.gensalt(4))
             changed = true
         }
 
         /* Section - options */
         // Disable weak hash benchmark for faster startup.
         // https://github.com/syncthing/syncthing/issues/4348
-        val options = mConfig!!.getDocumentElement()
+        val options = mConfig!!.documentElement
             .getElementsByTagName("options").item(0) as Element
         changed = setConfigElement(options, "weakHashSelectionMethod", "never") || changed
 
         /* Dismiss "fsWatcherNotification" according to https://github.com/syncthing/syncthing-android/pull/1051 */
-        val childNodes = options.getChildNodes()
-        for (i in 0..<childNodes.getLength()) {
+        val childNodes = options.childNodes
+        for (i in 0..<childNodes.length) {
             val node = childNodes.item(i)
-            if (node.getNodeName() == "unackedNotificationID") {
+            if (node.nodeName == "unackedNotificationID") {
                 // TODO - is this correct?
                 if (node.textContent == "fsWatcherNotification") {
                     Log.i(TAG, "Remove found unackedNotificationID 'fsWatcherNotification'.")
@@ -219,18 +219,18 @@ class ConfigXml(private val mContext: Context) {
      */
     private fun migrateSyncthingOptions(): Boolean {
         /* Read existing config version */
-        var iConfigVersion = mConfig!!.getDocumentElement().getAttribute("version").toInt()
+        var iConfigVersion = mConfig!!.documentElement.getAttribute("version").toInt()
         val iOldConfigVersion = iConfigVersion
-        Log.i(TAG, "Found existing config version " + iConfigVersion.toString())
+        Log.i(TAG, "Found existing config version $iConfigVersion")
 
         /* Check if we have to do manual migration from version X to Y */
         if (iConfigVersion == 27) {
             /* fsWatcher transition - https://github.com/syncthing/syncthing/issues/4882 */
-            Log.i(TAG, "Migrating config version " + iConfigVersion.toString() + " to 28 ...")
+            Log.i(TAG, "Migrating config version $iConfigVersion to 28 ...")
 
             /* Enable fsWatcher for all folders */
-            val folders = mConfig!!.getDocumentElement().getElementsByTagName("folder")
-            for (i in 0..<folders.getLength()) {
+            val folders = mConfig!!.documentElement.getElementsByTagName("folder")
+            for (i in 0..<folders.length) {
                 val r = folders.item(i) as Element
 
                 // Enable "fsWatcherEnabled" attribute and set default delay.
@@ -251,8 +251,8 @@ class ConfigXml(private val mContext: Context) {
         }
 
         if (iConfigVersion != iOldConfigVersion) {
-            mConfig!!.getDocumentElement().setAttribute("version", iConfigVersion.toString())
-            Log.i(TAG, "New config version is " + iConfigVersion.toString())
+            mConfig!!.documentElement.setAttribute("version", iConfigVersion.toString())
+            Log.i(TAG, "New config version is $iConfigVersion")
             return true
         } else {
             return false
@@ -265,15 +265,15 @@ class ConfigXml(private val mContext: Context) {
             element = mConfig!!.createElement(tagName)
             parent.appendChild(element)
         }
-        if (textContent != element.getTextContent()) {
-            element.setTextContent(textContent)
+        if (textContent != element.textContent) {
+            element.textContent = textContent
             return true
         }
         return false
     }
 
     private val guiElement: Element
-        get() = mConfig!!.getDocumentElement().getElementsByTagName("gui")
+        get() = mConfig!!.documentElement.getElementsByTagName("gui")
             .item(0) as Element
 
     /**
@@ -285,10 +285,10 @@ class ConfigXml(private val mContext: Context) {
      * Returns if changes to the config have been made.
      */
     private fun changeLocalDeviceName(localDeviceID: String?): Boolean {
-        val childNodes = mConfig!!.getDocumentElement().getChildNodes()
-        for (i in 0..<childNodes.getLength()) {
+        val childNodes = mConfig!!.documentElement.childNodes
+        for (i in 0..<childNodes.length) {
             val node = childNodes.item(i)
-            if (node.getNodeName() == "device") {
+            if (node.nodeName == "device") {
                 if ((node as Element).getAttribute("id") == localDeviceID) {
                     Log.i(
                         TAG,
@@ -307,7 +307,7 @@ class ConfigXml(private val mContext: Context) {
      * Returns if changes to the config have been made.
      */
     private fun changeDefaultFolder(): Boolean {
-        val folder = mConfig!!.getDocumentElement()
+        val folder = mConfig!!.documentElement
             .getElementsByTagName("folder").item(0) as Element
         val deviceModel = Build.MODEL
             .replace(" ", "_")
@@ -318,7 +318,7 @@ class ConfigXml(private val mContext: Context) {
         folder.setAttribute("id", mContext.getString(R.string.default_folder_id, defaultFolderId))
         folder.setAttribute(
             "path", Environment
-                .getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath()
+                .getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).absolutePath
         )
         folder.setAttribute("type", Constants.FOLDER_TYPE_SEND_ONLY)
         folder.setAttribute("fsWatcherEnabled", "true")

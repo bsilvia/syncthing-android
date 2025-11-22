@@ -100,7 +100,6 @@ class LogActivity : SyncthingActivity() {
     private class UpdateLogTask(context: LogActivity?) : AsyncTask<Void?, Void?, String?>() {
         private val refLogActivity: WeakReference<LogActivity?> = WeakReference<LogActivity?>(context)
 
-        @Deprecated("Deprecated in Java")
         override fun doInBackground(vararg params: Void?): String {
             // Get a reference to the activity if it is still there.
             val logActivity = refLogActivity.get()
@@ -111,7 +110,6 @@ class LogActivity : SyncthingActivity() {
             return getLog(logActivity.mSyncthingLog)
         }
 
-        @Deprecated("Deprecated in Java")
         override fun onPostExecute(log: String?) {
             // Get a reference to the activity if it is still there.
             val logActivity = refLogActivity.get()

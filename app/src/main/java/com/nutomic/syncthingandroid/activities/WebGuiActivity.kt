@@ -95,7 +95,6 @@ class WebGuiActivity : StateDialogActivity(), OnServiceStateChangeListener {
             }
         }
 
-        @Deprecated("Deprecated in Java")
         override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
             val uri = url!!.toUri()
             if (uri.host == service!!.webGuiUrl!!.host) {

@@ -94,12 +94,10 @@ class DeviceListFragment : ListFragment(), OnServiceStateChangeListener, OnItemC
         startActivity(intent)
     }
 
-    @Deprecated("Deprecated in Java")
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.device_list, menu)
     }
 
-    @Deprecated("Deprecated in Java")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.add_device -> {

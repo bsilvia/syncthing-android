@@ -283,7 +283,6 @@ class ShareActivity : StateDialogActivity(), OnServiceConnectedListener,
         private var mCopied = 0
         private var mIgnored = 0
 
-        @Deprecated("Deprecated in Java")
         override fun onPreExecute() {
             // Get a reference to the activity if it is still there.
             val shareActivity: ShareActivity = refShareActivity.get()!!
@@ -294,7 +293,6 @@ class ShareActivity : StateDialogActivity(), OnServiceConnectedListener,
             )
         }
 
-        @Deprecated("Deprecated in Java")
         override fun doInBackground(vararg params: Void?): Boolean {
             // Get a reference to the activity if it is still there.
             val shareActivity = refShareActivity.get()
@@ -342,7 +340,6 @@ class ShareActivity : StateDialogActivity(), OnServiceConnectedListener,
             return isError
         }
 
-        @Deprecated("Deprecated in Java")
         override fun onPostExecute(isError: Boolean?) {
             // Get a reference to the activity if it is still there.
             val shareActivity = refShareActivity.get()

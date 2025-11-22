@@ -148,7 +148,6 @@ class SettingsActivity : SyncthingActivity() {
          */
         private var mPendingRunConditions = false
 
-        @Deprecated("Deprecated in Java")
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
             (activity.application as SyncthingApp).component()!!.inject(this)
@@ -160,7 +159,6 @@ class SettingsActivity : SyncthingActivity() {
          *
          * Manual target API as we manually check if ActionBar is available (for ActionBar back button).
          */
-        @Deprecated("Deprecated in Java")
         override fun onActivityCreated(savedInstanceState: Bundle?) {
             super.onActivityCreated(savedInstanceState)
 
@@ -365,7 +363,6 @@ class SettingsActivity : SyncthingActivity() {
             }
         }
 
-        @Deprecated("Deprecated in Java")
         override fun onDestroy() {
             if (mSyncthingService != null) {
                 mSyncthingService!!.unregisterOnServiceStateChangeListener(this)
@@ -503,7 +500,6 @@ class SettingsActivity : SyncthingActivity() {
             return true
         }
 
-        @Deprecated("Deprecated in Java")
         override fun onStop() {
             if (mSyncthingService != null) {
                 mNotificationHandler!!.updatePersistentNotification(mSyncthingService!!)
@@ -526,7 +522,6 @@ class SettingsActivity : SyncthingActivity() {
          * Sends the updated value to [RestApi], and sets it as the summary
          * for EditTextPreference.
          */
-        @Deprecated("Deprecated in Java")
         override fun onPreferenceChange(preference: Preference, o: Any): Boolean {
             when (preference.key) {
                 Constants.PREF_DEBUG_FACILITIES_ENABLED -> mPendingConfig = true
@@ -589,7 +584,6 @@ class SettingsActivity : SyncthingActivity() {
             return true
         }
 
-        @Deprecated("Deprecated in Java")
         override fun onPreferenceClick(preference: Preference): Boolean {
             val intent: Intent
             when (preference.key) {
@@ -740,12 +734,10 @@ class SettingsActivity : SyncthingActivity() {
             AsyncTask<Void?, Void?, Boolean?>() {
             private val refSettingsFragment: WeakReference<SettingsFragment?> = WeakReference<SettingsFragment?>(context)
 
-            @Deprecated("Deprecated in Java")
             override fun doInBackground(vararg params: Void?): Boolean {
                 return Shell.SU.available()
             }
 
-            @Deprecated("Deprecated in Java")
             override fun onPostExecute(haveRoot: Boolean?) {
                 // Get a reference to the fragment if it is still there.
                 val settingsFragment = refSettingsFragment.get() ?: return

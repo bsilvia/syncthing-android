@@ -216,11 +216,6 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
             mDrawerFragment = DrawerFragment()
         }
 
-        try {
-            mViewPager = findViewById(R.id.pager)
-        } catch (e: Exception) {
-            Log.e(TAG, "onCreate", e)
-        }
         mViewPager = findViewById(R.id.pager)
         mSectionsPagerAdapter = SectionsPagerAdapter(this)
         mViewPager!!.adapter = mSectionsPagerAdapter
