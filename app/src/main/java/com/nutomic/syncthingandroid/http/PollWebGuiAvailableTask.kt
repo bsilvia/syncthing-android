@@ -2,6 +2,7 @@ package com.nutomic.syncthingandroid.http
 
 import android.content.Context
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.android.volley.Request
 import com.android.volley.VolleyError
@@ -16,7 +17,7 @@ class PollWebGuiAvailableTask(
     context: Context?, url: URL?, apiKey: String?,
     listener: OnSuccessListener?
 ) : ApiRequest(context!!, url!!, "", apiKey!!) {
-    private val mHandler = Handler()
+    private val mHandler = Handler(Looper.getMainLooper())
 
     private var mListener: OnSuccessListener?
 
