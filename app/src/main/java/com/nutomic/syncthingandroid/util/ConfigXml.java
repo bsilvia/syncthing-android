@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Environment;
-import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -19,16 +18,12 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Locale;
 import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilder;
@@ -42,12 +37,12 @@ import javax.xml.transform.stream.StreamResult;
 
 /**
  * Provides direct access to the config.xml file in the file system.
- *
+ * <p>
  * This class should only be used if the syncthing API is not available (usually during startup).
  */
 public class ConfigXml {
 
-    public class OpenConfigException extends RuntimeException {
+    public static class OpenConfigException extends RuntimeException {
     }
 
     private static final String TAG = "ConfigXml";
@@ -79,7 +74,7 @@ public class ConfigXml {
             String localDeviceID = logOutput.replace("\n", "");
             // Verify local device ID is correctly formatted.
             if (localDeviceID.matches("^([A-Z0-9]{7}-){7}[A-Z0-9]{7}$")) {
-                changed = changeLocalDeviceName(localDeviceID) || changed;
+                changed = changeLocalDeviceName(localDeviceID);
             }
             changed = changeDefaultFolder() || changed;
 
@@ -124,16 +119,16 @@ public class ConfigXml {
 
     /**
      * Updates the config file.
-     *
+     * <p>
      * Sets ignorePerms flag to true on every folder, force enables TLS, sets the
      * username/password, and disables weak hash checking.
      */
     @SuppressWarnings("SdCardPath")
     public void updateIfNeeded() {
-        boolean changed = false;
+        boolean changed;
 
         /* Perform one-time migration tasks on syncthing's config file when coming from an older config version. */
-        changed = migrateSyncthingOptions() || changed;
+        changed = migrateSyncthingOptions();
 
         /* Get refs to important config objects */
         NodeList folders = mConfig.getDocumentElement().getElementsByTagName("folder");

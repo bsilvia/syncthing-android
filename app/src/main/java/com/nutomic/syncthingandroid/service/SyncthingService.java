@@ -3,7 +3,10 @@ package com.nutomic.syncthingandroid.service;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.CancellationException;
 import android.os.Handler;
 import android.util.Log;
 
@@ -150,7 +153,8 @@ public class SyncthingService extends Service {
     private @Nullable EventProcessor mEventProcessor = null;
     private @Nullable RunConditionMonitor mRunConditionMonitor = null;
     private @Nullable SyncthingRunnable mSyncthingRunnable = null;
-    private StartupTask mStartupTask = null;
+    private ExecutorService mExecutor = null;
+    private Future<?> mStartupTaskFuture = null;
     private Thread mSyncthingRunnableThread = null;
     private Handler mHandler;
 
@@ -191,6 +195,9 @@ public class SyncthingService extends Service {
         super.onCreate();
         ((SyncthingApp) getApplication()).component().inject(this);
         mHandler = new Handler();
+
+        // Executor for background tasks that previously used AsyncTask
+        mExecutor = Executors.newSingleThreadExecutor();
 
         /*
          * If runtime permissions are revoked, android kills and restarts the service.
@@ -339,73 +346,70 @@ public class SyncthingService extends Service {
             return;
         }
         onServiceStateChange(State.STARTING);
-        mStartupTask = new StartupTask(this);
-        mStartupTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        if (mExecutor == null) {
+            mExecutor = Executors.newSingleThreadExecutor();
+        }
+        mStartupTaskFuture = mExecutor.submit(new StartupTask(this));
     }
 
     private boolean startupTaskIsRunning() {
-        return mStartupTask != null && mStartupTask.getStatus() == AsyncTask.Status.RUNNING;
+        return mStartupTaskFuture != null && !mStartupTaskFuture.isDone();
     }
 
     /**
      * Sets up the initial configuration, and updates the config when coming from an old
      * version.
      */
-     private static class StartupTask extends AsyncTask<Void, Void, Void> {
-         private final WeakReference<SyncthingService> refSyncthingService;
+    private static class StartupTask implements Runnable {
+        private final WeakReference<SyncthingService> refSyncthingService;
 
-         StartupTask(SyncthingService context) {
-             refSyncthingService = new WeakReference<>(context);
-         }
+        StartupTask(SyncthingService context) {
+            refSyncthingService = new WeakReference<>(context);
+        }
 
-         @Override
-         protected Void doInBackground(Void... voids) {
-             SyncthingService syncthingService = refSyncthingService.get();
-             if (syncthingService == null) {
-                 cancel(true);
-                 return null;
-             }
-             try {
-                 syncthingService.mConfig = new ConfigXml(syncthingService);
-                 syncthingService.mConfig.updateIfNeeded();
-             } catch (ConfigXml.OpenConfigException e) {
-                 syncthingService.mNotificationHandler.showCrashedNotification(R.string.config_create_failed, true);
-                 synchronized (syncthingService.mStateLock) {
-                     syncthingService.onServiceStateChange(State.ERROR);
-                 }
-                 cancel(true);
-             }
-             return null;
-         }
+        @Override
+        public void run() {
+            SyncthingService syncthingService = refSyncthingService.get();
+            if (syncthingService == null) {
+                return;
+            }
+            try {
+                syncthingService.mConfig = new ConfigXml(syncthingService);
+                syncthingService.mConfig.updateIfNeeded();
+            } catch (ConfigXml.OpenConfigException e) {
+                syncthingService.mNotificationHandler.showCrashedNotification(R.string.config_create_failed, true);
+                synchronized (syncthingService.mStateLock) {
+                    syncthingService.onServiceStateChange(State.ERROR);
+                }
+                return;
+            }
 
-         @Override
-         protected void onPostExecute(Void aVoid) {
-             // Get a reference to the service if it is still there.
-             SyncthingService syncthingService = refSyncthingService.get();
-             if (syncthingService != null) {
-                 syncthingService.onStartupTaskCompleteListener();
-             }
-         }
-     }
+            // Post back to the main thread to run the completion callback
+            SyncthingService svc = refSyncthingService.get();
+            if (svc != null && svc.mHandler != null) {
+                svc.mHandler.post(svc::onStartupTaskCompleteListener);
+            }
+        }
+    }
 
-     /**
-      * Callback on {@link StartupTask#onPostExecute}.
-      */
-     private void onStartupTaskCompleteListener() {
-         if (mApi == null) {
-             mApi = new RestApi(this, mConfig.getWebGuiUrl(), mConfig.getApiKey(),
-                                 this::onApiAvailable, () -> onServiceStateChange(mCurrentState));
-             Log.i(TAG, "Web GUI will be available at " + mConfig.getWebGuiUrl());
-         }
+    /**
+     * Callback on {@link StartupTask#onPostExecute}.
+     */
+    private void onStartupTaskCompleteListener() {
+        if (mApi == null) {
+            mApi = new RestApi(this, mConfig.getWebGuiUrl(), mConfig.getApiKey(),
+                    this::onApiAvailable, () -> onServiceStateChange(mCurrentState));
+            Log.i(TAG, "Web GUI will be available at " + mConfig.getWebGuiUrl());
+        }
 
-         // Start the syncthing binary.
-         if (mSyncthingRunnable != null || mSyncthingRunnableThread != null) {
-             Log.e(TAG, "onStartupTaskCompleteListener: Syncthing binary lifecycle violated");
-             return;
-         }
-         mSyncthingRunnable = new SyncthingRunnable(this, SyncthingRunnable.Command.main);
-         mSyncthingRunnableThread = new Thread(mSyncthingRunnable);
-         mSyncthingRunnableThread.start();
+        // Start the syncthing binary.
+        if (mSyncthingRunnable != null || mSyncthingRunnableThread != null) {
+            Log.e(TAG, "onStartupTaskCompleteListener: Syncthing binary lifecycle violated");
+            return;
+        }
+        mSyncthingRunnable = new SyncthingRunnable(this, SyncthingRunnable.Command.main);
+        mSyncthingRunnableThread = new Thread(mSyncthingRunnable);
+        mSyncthingRunnableThread.start();
 
          /*
           * Wait for the web-gui of the native syncthing binary to come online.
@@ -501,6 +505,10 @@ public class SyncthingService extends Service {
             shutdown(State.DISABLED, () -> {});
         }
         super.onDestroy();
+        if (mExecutor != null) {
+            mExecutor.shutdownNow();
+            mExecutor = null;
+        }
     }
 
     /**
@@ -544,12 +552,13 @@ public class SyncthingService extends Service {
             mSyncthingRunnable = null;
         }
         if (startupTaskIsRunning()) {
-            mStartupTask.cancel(true);
+            mStartupTaskFuture.cancel(true);
             Log.v(TAG, "Waiting for mStartupTask to finish after cancelling ...");
             try {
-                mStartupTask.get();
-            } catch (Exception ignored) { }
-            mStartupTask = null;
+                mStartupTaskFuture.get();
+            } catch (Exception ignored) {
+            }
+            mStartupTaskFuture = null;
         }
         onKilledListener.onKilled();
     }

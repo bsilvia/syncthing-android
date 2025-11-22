@@ -7,7 +7,6 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Build;
 import android.preference.PreferenceManager;
 import androidx.appcompat.app.AlertDialog;
 import android.util.Log;
@@ -81,7 +80,7 @@ public class Util {
      * Normally an application's data directory is only accessible by the corresponding application.
      * Therefore, every file and directory is owned by an application's user and group. When running Syncthing as root,
      * it writes to the application's data directory. This leaves files and directories behind which are owned by root having 0600.
-     * Moreover, those acitons performed as root changes a file's type in terms of SELinux.
+     * Moreover, those actions performed as root changes a file's type in terms of SELinux.
      * A subsequent start of Syncthing will fail due to insufficient permissions.
      * Hence, this method fixes the owner, group and the files' type of the data directory.
      *
@@ -91,7 +90,7 @@ public class Util {
         // We can safely assume that root magic is somehow available, because readConfig and saveChanges check for
         // read and write access before calling us.
         // Be paranoid :) and check if root is available.
-        // Ignore the 'use_root' preference, because we might want to fix ther permission
+        // Ignore the 'use_root' preference, because we might want to fix the permission
         // just after the root option has been disabled.
         if (!Shell.SU.available()) {
             Log.e(TAG, "Root is not available. Cannot fix permissions.");
@@ -137,8 +136,8 @@ public class Util {
      */
     public static boolean nativeBinaryCanWriteToPath(Context context, String absoluteFolderPath) {
         final String TOUCH_FILE_NAME = ".stwritetest";
-        Boolean useRoot = false;
-        Boolean prefUseRoot = PreferenceManager.getDefaultSharedPreferences(context)
+        boolean useRoot = false;
+        boolean prefUseRoot = PreferenceManager.getDefaultSharedPreferences(context)
             .getBoolean(Constants.PREF_USE_ROOT, false);
         if (prefUseRoot && Shell.SU.available()) {
             useRoot = true;
@@ -149,12 +148,10 @@ public class Util {
         int exitCode = runShellCommand("echo \"\" > \"" + touchFile + "\"\n", useRoot);
         if (exitCode != 0) {
             String error;
-            switch (exitCode) {
-                case 1:
-                    error = "Permission denied";
-                    break;
-                default:
-                    error = "Shell execution failed";
+            if (exitCode == 1) {
+                error = "Permission denied";
+            } else {
+                error = "Shell execution failed";
             }
             Log.i(TAG, "Failed to write test file '" + touchFile +
                 "', " + error);
