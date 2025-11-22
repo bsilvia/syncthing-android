@@ -2,9 +2,9 @@ package com.nutomic.syncthingandroid.service
 
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import androidx.preference.PreferenceManager
 import android.util.Log
+import androidx.core.content.edit
+import androidx.preference.PreferenceManager
 import com.google.common.base.Function
 import com.google.common.base.Objects
 import com.google.common.base.Optional
@@ -40,7 +40,6 @@ import java.util.Collections
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
-import androidx.core.content.edit
 
 /**
  * Provides functions to interact with the syncthing REST API.
@@ -305,12 +304,12 @@ class RestApi(
     fun ignoreFolder(deviceId: String, folderId: String, folderLabel: String?) {
         synchronized(mConfigLock) {
             for (device in mConfig!!.devices!!) {
-                if (deviceId == device?.deviceID) {
+                if (deviceId == device.deviceID) {
                     /*
                      * Check if the folder has already been ignored.
                      */
-                    for (ignoredFolder in device.ignoredFolders) {
-                        if (folderId == ignoredFolder.id) {
+                    for (ignoredFolder in device.ignoredFolders!!) {
+                        if (folderId == ignoredFolder?.id) {
                             // Folder already ignored.
                             Log.d(
                                 TAG,
@@ -328,7 +327,7 @@ class RestApi(
                     ignoredFolder.id = folderId
                     ignoredFolder.label = folderLabel
                     ignoredFolder.time = dateFormat.format(Date())
-                    device.ignoredFolders.add(ignoredFolder)
+                    device.ignoredFolders!!.add(ignoredFolder)
                     //                    if (BuildConfig.DEBUG) {
 //                        Log.v(TAG, "device.ignoredFolders = " + new Gson().toJson(device.ignoredFolders));
 //                    }
@@ -353,7 +352,7 @@ class RestApi(
         synchronized(mConfigLock) {
             mConfig!!.remoteIgnoredDevices?.clear()
             for (device in mConfig!!.devices!!) {
-                device?.ignoredFolders?.clear()
+                device.ignoredFolders?.clear()
             }
         }
     }
@@ -528,7 +527,7 @@ class RestApi(
         }
 
     fun addDevice(device: Device, errorListener: OnResultListener1<String?>) {
-        normalizeDeviceId(device.deviceID, { _: String? ->
+        normalizeDeviceId(device.deviceID!!, { _: String? ->
             synchronized(mConfigLock) {
                 mConfig!!.devices?.add(device)
                 sendConfig()
@@ -557,7 +556,7 @@ class RestApi(
             val it = mConfig!!.devices?.iterator()!!
             while (it.hasNext()) {
                 val d = it.next()
-                if (d?.deviceID == deviceId) {
+                if (d.deviceID == deviceId) {
                     it.remove()
                     break
                 }
@@ -828,11 +827,8 @@ class RestApi(
     companion object {
         private const val TAG = "RestApi"
 
-        private val dateFormat: SimpleDateFormat = if (Build.VERSION.SDK_INT < 24) {
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
-        } else {
+        private val dateFormat: SimpleDateFormat =
             SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.US)
-        }
 
         /**
          * Compares folders by labels, uses the folder ID as fallback if the label is empty

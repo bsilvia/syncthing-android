@@ -92,7 +92,8 @@ class EventProcessor(context: Context, api: RestApi?) : Runnable, OnReceiveEvent
     override fun onEvent(event: Event?) {
         var mapData: MutableMap<String?, Any?>? = null
         try {
-            mapData = event?.data as MutableMap<String?, Any?>?
+            @Suppress("UNCHECKED_CAST")
+            mapData = event?.data as? MutableMap<String?, Any?>?
         } catch (_: ClassCastException) {
         }
         when (event?.type) {
@@ -102,8 +103,9 @@ class EventProcessor(context: Context, api: RestApi?) : Runnable, OnReceiveEvent
             }
 
             "PendingDevicesChanged" -> {
+                @Suppress("UNCHECKED_CAST")
                 mapNullable<MutableMap<String?, String?>?>(
-                    mapData!!["added"] as MutableList<MutableMap<String?, String?>?>?
+                    mapData!!["added"] as? MutableList<MutableMap<String?, String?>?>?
                 ) { added: MutableMap<String?, String?>? ->
                     this.onPendingDevicesChanged(added!!)
                 }
@@ -113,15 +115,16 @@ class EventProcessor(context: Context, api: RestApi?) : Runnable, OnReceiveEvent
                     val completionInfo = CompletionInfo()
                     completionInfo.completion = (mapData!!["completion"] as Double?)!!
                 mApi!!.setCompletionInfo(
-                    mapData!!["device"] as String?,  // deviceId
+                    mapData["device"] as String?,  // deviceId
                     mapData["folder"] as String?,  // folderId
                     completionInfo
                 )
             }
 
             "PendingFoldersChanged" -> {
+                @Suppress("UNCHECKED_CAST")
                 mapNullable<MutableMap<String?, String?>?>(
-                    mapData!!["added"] as MutableList<MutableMap<String?, String?>?>?
+                    mapData!!["added"] as? MutableList<MutableMap<String?, String?>?>?
                 ) { added: MutableMap<String?, String?>? ->
                     this.onPendingFoldersChanged(added!!)
                 }
