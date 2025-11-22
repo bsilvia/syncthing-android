@@ -42,7 +42,7 @@ abstract class ApiRequest internal constructor(
         fun onSuccess(result: String?)
     }
 
-    interface OnImageSuccessListener {
+    fun interface OnImageSuccessListener {
         fun onImageSuccess(result: Bitmap?)
     }
 
