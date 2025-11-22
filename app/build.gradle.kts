@@ -1,7 +1,9 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("com.android.application")
     id("com.github.ben-manes.versions")
     id("com.github.triplet.play") version "3.12.2"
+    id("org.jetbrains.kotlin.android")
 }
 
 dependencies {
@@ -22,6 +24,7 @@ dependencies {
 
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("com.google.dagger:dagger:2.57.2")
+    implementation("androidx.core:core-ktx:1.17.0")
     annotationProcessor("com.google.dagger:dagger-compiler:2.57.2")
     androidTestImplementation("androidx.test:rules:1.7.0")
     androidTestImplementation("androidx.annotation:annotation:1.9.1")
@@ -84,6 +87,12 @@ android {
         }
     }
     namespace = "com.nutomic.syncthingandroid"
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
+    }
 }
 
 play {
