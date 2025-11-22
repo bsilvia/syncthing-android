@@ -32,7 +32,7 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
         }
     }
 
-    interface OnRunConditionChangedListener {
+    fun interface OnRunConditionChangedListener {
         fun onRunConditionChanged(result: RunConditionCheckResult?)
     }
 
@@ -73,7 +73,7 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
         val filter = IntentFilter()
         filter.addAction(Intent.ACTION_POWER_CONNECTED)
         filter.addAction(Intent.ACTION_POWER_DISCONNECTED)
-        ReceiverManager.registerReceiver(mContext, RunConditionMonitor.BatteryReceiver(), filter)
+        ReceiverManager.registerReceiver(mContext, BatteryReceiver(), filter)
 
         // PowerSaveModeChangedReceiver
         ReceiverManager.registerReceiver(

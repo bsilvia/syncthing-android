@@ -122,7 +122,7 @@ class RestApi(
     @Inject
     var mNotificationHandler: NotificationHandler? = null
 
-    interface OnApiAvailableListener {
+    fun interface OnApiAvailableListener {
         fun onApiAvailable()
     }
 
