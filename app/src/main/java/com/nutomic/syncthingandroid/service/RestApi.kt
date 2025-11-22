@@ -49,7 +49,7 @@ class RestApi(
     context: Context, url: URL?, apiKey: String?, apiListener: OnApiAvailableListener,
     configListener: OnConfigChangedListener
 ) {
-    interface OnConfigChangedListener {
+    fun interface OnConfigChangedListener {
         fun onConfigChanged()
     }
 
@@ -57,7 +57,7 @@ class RestApi(
         fun onResult(t: T?)
     }
 
-    interface OnResultListener2<T, R> {
+    fun interface OnResultListener2<T, R> {
         fun onResult(t: T?, r: R?)
     }
 
@@ -78,7 +78,7 @@ class RestApi(
      * Stores the result of the last successful request to [GetRequest.URI_CONNECTIONS],
      * or an empty Map.
      */
-    private var mPreviousConnections = Optional.absent<Connections?>()
+    private var mPreviousConnections = Optional.absent<Connections>()
 
     /**
      * Stores the timestamp of the last successful request to [GetRequest.URI_CONNECTIONS].
@@ -118,6 +118,7 @@ class RestApi(
      */
     private val mCompletion = Completion()
 
+    @JvmField
     @Inject
     var mNotificationHandler: NotificationHandler? = null
 
@@ -366,7 +367,7 @@ class RestApi(
         PostRequest(
             mContext,
             this.url, PostRequest.URI_DB_OVERRIDE, mApiKey,
-            ImmutableMap.of<String?, String?>("folder", folderId), null
+            ImmutableMap.of<String, String>("folder", folderId), null
         )
     }
 
@@ -421,9 +422,9 @@ class RestApi(
             synchronized(mConfigLock) {
                 folders =
                     deepCopy(
-                        mConfig.folders,
+                        mConfig?.folders,
                         object :
-                            com.google.common.reflect.TypeToken<MutableList<Folder?>?>() {}.type
+                            com.google.common.reflect.TypeToken<MutableList<Folder>>() {}.type
                     )!!
             }
             Collections.sort<Folder?>(
@@ -488,7 +489,7 @@ class RestApi(
             devices = deepCopy(
                 mConfig!!.devices,
                 object :
-                    com.google.common.reflect.TypeToken<MutableList<Device?>?>() {}.type
+                    com.google.common.reflect.TypeToken<MutableList<Device?>>() {}.type
             )!!
         }
 
@@ -660,27 +661,27 @@ class RestApi(
 
                 mPreviousConnectionTime = now
                 val connections = Gson().fromJson(result, Connections::class.java)
-                for (e in connections.connections.entries) {
-                    e.value.completion = mCompletion.getDeviceCompletion(e.key)
+                for (e in connections.connections?.entries!!) {
+                    e.value?.completion = mCompletion.getDeviceCompletion(e.key)
 
                     val prev: Connections.Connection = checkNotNull(
-                        if (mPreviousConnections.isPresent && mPreviousConnections.get()!!.connections.containsKey(
+                        if (mPreviousConnections.isPresent && mPreviousConnections.get().connections?.containsKey(
                                 e.key
-                            )
+                            ) == true
                         )
-                            mPreviousConnections.get()!!.connections.get(e.key)
+                            mPreviousConnections.get().connections?.get(e.key)
                         else
                             Connections.Connection()
                     )
-                    e.value.setTransferRate(prev, msElapsed)
+                    e.value?.setTransferRate(prev, msElapsed)
                 }
                 val prev =
-                    mPreviousConnections.transform<Connections.Connection>(Function { c: Connections? -> c!!.total })
+                    mPreviousConnections.transform(Function { c: Connections -> c.total!! })
                         .or(
                             Connections.Connection()
                         )
-                connections.total.setTransferRate(prev, msElapsed)
-                mPreviousConnections = Optional.of<Connections?>(connections)
+                connections.total?.setTransferRate(prev, msElapsed)
+                mPreviousConnections = Optional.of(connections)
                 listener.onResult(deepCopy<Connections?>(connections, Connections::class.java))
             })
     }
@@ -694,7 +695,7 @@ class RestApi(
             this.url,
             GetRequest.URI_STATUS,
             mApiKey,
-            ImmutableMap.of<String?, String?>("folder", folderId)
+            ImmutableMap.of<String, String>("folder", folderId)
         ) { result: String? ->
             val m = Gson().fromJson(result, FolderStatus::class.java)
             mCachedFolderStatuses[folderId] = m
@@ -724,8 +725,8 @@ class RestApi(
      * The OnReceiveEventListeners onEvent method is called for each event.
      */
     fun getEvents(sinceId: Long, limit: Long, listener: OnReceiveEventListener) {
-        val params: MutableMap<String?, String?> =
-            ImmutableMap.of<String?, String?>(
+        val params: MutableMap<String, String> =
+            ImmutableMap.of(
                 "since",
                 sinceId.toString(),
                 "limit",
@@ -763,7 +764,7 @@ class RestApi(
         GetRequest(
             mContext,
             this.url, GetRequest.URI_DEVICEID, mApiKey,
-            ImmutableMap.of<String?, String?>("id", id)
+            ImmutableMap.of<String, String>("id", id)
         ) { result: String? ->
             val json = JsonParser.parseString(result).getAsJsonObject()
             val normalizedId = json.get("id")

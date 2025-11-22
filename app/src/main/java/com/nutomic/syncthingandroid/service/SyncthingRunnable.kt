@@ -37,7 +37,7 @@ import javax.inject.Inject
 class SyncthingRunnable(context: Context, command: Command) : Runnable {
     private val mContext: Context
     private val mSyncthingBinary: File
-    private val mCommand: Array<String?>
+    private val mCommand: Array<String>
     private val mLogFile: File
 
     @JvmField
@@ -354,7 +354,7 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
         }
     }
 
-    interface OnSyncthingKilled {
+    fun interface OnSyncthingKilled {
         fun onKilled()
     }
 

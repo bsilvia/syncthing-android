@@ -50,9 +50,11 @@ class EventProcessor(context: Context, api: RestApi?) : Runnable, OnReceiveEvent
     private val mContext: Context
     private val mApi: RestApi?
 
+    @JvmField
     @Inject
     var mPreferences: SharedPreferences? = null
 
+    @JvmField
     @Inject
     var mNotificationHandler: NotificationHandler? = null
 
@@ -108,8 +110,8 @@ class EventProcessor(context: Context, api: RestApi?) : Runnable, OnReceiveEvent
             }
 
             "FolderCompletion" -> {
-                val completionInfo = CompletionInfo()
-                completionInfo.completion = (mapData.get("completion") as Double?)!!
+                    val completionInfo = CompletionInfo()
+                    completionInfo.completion = (mapData!!["completion"] as Double?)!!
                 mApi!!.setCompletionInfo(
                     mapData!!["device"] as String?,  // deviceId
                     mapData["folder"] as String?,  // folderId
