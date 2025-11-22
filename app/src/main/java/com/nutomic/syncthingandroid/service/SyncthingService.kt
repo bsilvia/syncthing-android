@@ -28,11 +28,11 @@ import javax.inject.Inject
  * Holds the native syncthing instance and provides an API to access it.
  */
 class SyncthingService : Service() {
-    interface OnServiceStateChangeListener {
+    fun interface OnServiceStateChangeListener {
         fun onServiceStateChange(currentState: State?)
     }
 
-    interface OnRunConditionCheckResultListener {
+    fun interface OnRunConditionCheckResultListener {
         fun onRunConditionCheckResultChanged(result: RunConditionCheckResult?)
     }
 
