@@ -50,6 +50,16 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
      */
     private var lastRunConditionCheckResult: RunConditionCheckResult? = null
 
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: android.net.Network) {
+            updateShouldRunDecision()
+        }
+
+        override fun onLost(network: android.net.Network) {
+            updateShouldRunDecision()
+        }
+    }
+
     init {
         Log.v(TAG, "Created new instance")
         (context.applicationContext as SyncthingApp).component()!!.inject(this)
@@ -59,12 +69,10 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
         /**
          * Register broadcast receivers.
          */
-        // NetworkReceiver (legacy broadcast used for older platforms)
-        ReceiverManager.registerReceiver(
-            mContext,
-            NetworkReceiver(),
-            IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-        )
+
+        // Register network callback for connectivity changes (API 24+)
+        val cm = mContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        cm.registerDefaultNetworkCallback(networkCallback)
 
         // BatteryReceiver
         val filter = IntentFilter()
@@ -88,12 +96,15 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
         updateShouldRunDecision()
     }
 
+    
     fun shutdown() {
         Log.v(TAG, "Shutting down")
         if (mSyncStatusObserverHandle != null) {
             ContentResolver.removeStatusChangeListener(mSyncStatusObserverHandle)
             mSyncStatusObserverHandle = null
         }
+        val cm = mContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        cm.unregisterNetworkCallback(networkCallback)
         ReceiverManager.unregisterAllReceivers(mContext)
     }
 
@@ -108,13 +119,6 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
         }
     }
 
-    private inner class NetworkReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent) {
-            if (ConnectivityManager.CONNECTIVITY_ACTION == intent.action) {
-                updateShouldRunDecision()
-            }
-        }
-    }
 
     private inner class PowerSaveModeChangedReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
