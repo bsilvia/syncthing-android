@@ -11,7 +11,7 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.text.Html
+import androidx.core.text.HtmlCompat
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -24,8 +24,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import androidx.viewpager.widget.PagerAdapter
-import androidx.viewpager.widget.ViewPager.OnPageChangeListener
+import androidx.viewpager2.widget.ViewPager2
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
 import com.nutomic.syncthingandroid.R
 import com.nutomic.syncthingandroid.SyncthingApp
@@ -88,8 +88,8 @@ class FirstStartActivity : Activity() {
         setActiveBottomDot(0)
 
         mViewPagerAdapter = ViewPagerAdapter()
-        binding!!.viewPager.setAdapter(mViewPagerAdapter)
-        binding!!.viewPager.addOnPageChangeListener(mViewPagerPageChangeListener)
+        binding!!.viewPager.adapter = mViewPagerAdapter
+        binding!!.viewPager.registerOnPageChangeCallback(mViewPagerPageChangeCallback)
 
         binding!!.btnBack.setOnClickListener { onBtnBackClick() }
 
@@ -224,7 +224,7 @@ class FirstStartActivity : Activity() {
         mDots = arrayOfNulls(slides.size)
         for (i in mDots.indices) {
             mDots[i] = TextView(this)
-            mDots[i]!!.text = Html.fromHtml("&#8226;")
+            mDots[i]!!.text = HtmlCompat.fromHtml("&#8226;", HtmlCompat.FROM_HTML_MODE_LEGACY)
             mDots[i]!!.textSize = 35f
             binding!!.layoutDots.addView(mDots[i])
         }
@@ -239,78 +239,58 @@ class FirstStartActivity : Activity() {
         mDots[currentPage]!!.setTextColor(colorActive)
     }
 
-    //  ViewPager change listener
-    var mViewPagerPageChangeListener: OnPageChangeListener = object : OnPageChangeListener {
+    // ViewPager2 change callback
+    private val mViewPagerPageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
         override fun onPageSelected(position: Int) {
             setActiveBottomDot(position)
-
             // Change the next button text from next to finish on last slide.
             binding!!.btnNext.text = getString(if (position == slides.size - 1) R.string.finish else R.string.cont)
-        }
-
-        override fun onPageScrolled(arg0: Int, arg1: Float, arg2: Int) {
-        }
-
-        override fun onPageScrollStateChanged(arg0: Int) {
         }
     }
 
     /**
      * View pager adapter
      */
-    inner class ViewPagerAdapter : PagerAdapter() {
-        private var layoutInflater: LayoutInflater? = null
+    inner class ViewPagerAdapter : RecyclerView.Adapter<ViewPagerAdapter.ViewHolder>() {
+        inner class ViewHolder(val root: View) : RecyclerView.ViewHolder(root)
 
-        @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-        override fun instantiateItem(container: ViewGroup, position: Int): Any {
-            layoutInflater = getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val inflater = LayoutInflater.from(parent.context)
+            val view = inflater.inflate(viewType, parent, false)
+            return ViewHolder(view)
+        }
 
-            val view: View = layoutInflater!!.inflate(slides[position].layout, container, false)
-
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             when (slides[position]) {
                 Slide.INTRO -> {}
                 Slide.STORAGE -> {
-                    val btnGrantStoragePerm =
-                        view.findViewById<View?>(R.id.btnGrantStoragePerm) as Button
-                    btnGrantStoragePerm.setOnClickListener { requestStoragePermission() }
+                    val btnGrantStoragePerm = holder.root.findViewById<Button>(R.id.btnGrantStoragePerm)
+                    btnGrantStoragePerm?.setOnClickListener { requestStoragePermission() }
                 }
 
                 Slide.LOCATION -> {
-                    val btnGrantLocationPerm =
-                        view.findViewById<View?>(R.id.btnGrantLocationPerm) as Button
-                    btnGrantLocationPerm.setOnClickListener { requestLocationPermission() }
+                    val btnGrantLocationPerm = holder.root.findViewById<Button>(R.id.btnGrantLocationPerm)
+                    btnGrantLocationPerm?.setOnClickListener { requestLocationPermission() }
                 }
 
                 Slide.API_LEVEL_30 -> {
-                    val btnResetDatabase = view.findViewById<View?>(R.id.btnResetDatabase) as Button
-                    btnResetDatabase.setOnClickListener {
+                    val btnResetDatabase = holder.root.findViewById<Button>(R.id.btnResetDatabase)
+                    btnResetDatabase?.setOnClickListener {
                         upgradeToApiLevel30()
                         onBtnNextClick()
                     }
                 }
 
                 Slide.NOTIFICATION -> {
-                    val notificationBtn = view.findViewById<View?>(R.id.btn_notification) as Button
-                    notificationBtn.setOnClickListener { requestNotificationPermission() }
+                    val notificationBtn = holder.root.findViewById<Button>(R.id.btn_notification)
+                    notificationBtn?.setOnClickListener { requestNotificationPermission() }
                 }
             }
-
-            container.addView(view)
-            return view
         }
 
-        override fun getCount(): Int {
-            return slides.size
-        }
+        override fun getItemCount(): Int = slides.size
 
-        override fun isViewFromObject(view: View, obj: Any): Boolean {
-            return view === obj
-        }
-
-        override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
-            val view = `object` as View?
-            container.removeView(view)
-        }
+        override fun getItemViewType(position: Int): Int = slides[position].layout
     }
 
     /**
