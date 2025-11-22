@@ -366,7 +366,7 @@ class RestApi(
         PostRequest(
             mContext,
             this.url, PostRequest.URI_DB_OVERRIDE, mApiKey,
-            ImmutableMap.of<String, String>("folder", folderId), null
+            ImmutableMap.of("folder", folderId), null
         )
     }
 
@@ -694,7 +694,7 @@ class RestApi(
             this.url,
             GetRequest.URI_STATUS,
             mApiKey,
-            ImmutableMap.of<String, String>("folder", folderId)
+            ImmutableMap.of("folder", folderId)
         ) { result: String? ->
             val m = Gson().fromJson(result, FolderStatus::class.java)
             mCachedFolderStatuses[folderId] = m
@@ -762,7 +762,7 @@ class RestApi(
     ) {
         GetRequest(
             mContext,
-            this.url, GetRequest.URI_DEVICEID, mApiKey,
+            this.url, GetRequest.URI_DEVICE_ID, mApiKey,
             ImmutableMap.of<String, String>("id", id)
         ) { result: String? ->
             val json = JsonParser.parseString(result).getAsJsonObject()

@@ -33,6 +33,7 @@ import java.net.URL;
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -218,10 +219,11 @@ public class DrawerFragment extends Fragment implements View.OnClickListener {
             return;
         }
         try {
-            String apiKey = restApi.getGui().apiKey;
-            String deviceId = restApi.getLocalDevice().deviceID;
+            String apiKey = Objects.requireNonNull(restApi.getGui()).apiKey;
+            String deviceId = Objects.requireNonNull(restApi.getLocalDevice()).deviceID;
             URL url = restApi.getUrl();
             //The QRCode request takes one paramteer called "text", which is the text to be converted to a QRCode.
+            assert deviceId != null;
             new ImageGetRequest(mActivity, url, ImageGetRequest.QR_CODE_GENERATOR, apiKey,
                     ImmutableMap.of("text", deviceId),qrCodeBitmap -> {
                 mActivity.showQrCodeDialog(deviceId, qrCodeBitmap);
