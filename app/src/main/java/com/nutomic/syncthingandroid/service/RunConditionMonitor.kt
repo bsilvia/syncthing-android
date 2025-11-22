@@ -8,8 +8,8 @@ import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.SyncStatusObserver
 import android.net.ConnectivityManager
-import android.net.wifi.WifiManager
 import android.net.NetworkCapabilities
+import android.net.wifi.WifiManager
 import android.os.BatteryManager
 import android.os.Handler
 import android.os.Looper
@@ -28,11 +28,7 @@ import javax.inject.Inject
  */
 class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListener?) {
     private var mSyncStatusObserverHandle: Any? = null
-    private val mSyncStatusObserver: SyncStatusObserver = object : SyncStatusObserver {
-        override fun onStatusChanged(which: Int) {
-            updateShouldRunDecision()
-        }
-    }
+    private val mSyncStatusObserver: SyncStatusObserver = SyncStatusObserver { updateShouldRunDecision() }
 
     fun interface OnRunConditionChangedListener {
         fun onRunConditionChanged(result: RunConditionCheckResult?)
@@ -43,7 +39,6 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
     @JvmField
     @Inject
     var mPreferences: SharedPreferences? = null
-    private val mReceiverManager: ReceiverManager? = null
 
     /**
      * Sending callback notifications through [OnRunConditionChangedListener] is enabled if not null.
@@ -57,7 +52,7 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
 
     init {
         Log.v(TAG, "Created new instance")
-        (context.getApplicationContext() as SyncthingApp).component()!!.inject(this)
+        (context.applicationContext as SyncthingApp).component()!!.inject(this)
         mContext = context
         mOnRunConditionChangedListener = listener
 
@@ -104,8 +99,8 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
 
     private inner class BatteryReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
-            if (Intent.ACTION_POWER_CONNECTED == intent.getAction()
-                || Intent.ACTION_POWER_DISCONNECTED == intent.getAction()
+            if (Intent.ACTION_POWER_CONNECTED == intent.action
+                || Intent.ACTION_POWER_DISCONNECTED == intent.action
             ) {
                 val handler = Handler(Looper.getMainLooper())
                 handler.postDelayed({ updateShouldRunDecision() }, 5000)
@@ -115,7 +110,7 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
 
     private inner class NetworkReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
-            if (ConnectivityManager.CONNECTIVITY_ACTION == intent.getAction()) {
+            if (ConnectivityManager.CONNECTIVITY_ACTION == intent.action) {
                 updateShouldRunDecision()
             }
         }
@@ -123,7 +118,7 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
 
     private inner class PowerSaveModeChangedReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
-            if (PowerManager.ACTION_POWER_SAVE_MODE_CHANGED == intent.getAction()) {
+            if (PowerManager.ACTION_POWER_SAVE_MODE_CHANGED == intent.action) {
                 updateShouldRunDecision()
             }
         }
@@ -157,15 +152,15 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
         val prefRunOnMeteredWifi =
             mPreferences!!.getBoolean(Constants.PREF_RUN_ON_METERED_WIFI, false)
         val whitelistedWifiSsids: MutableSet<String?> = mPreferences!!.getStringSet(
-            com.nutomic.syncthingandroid.service.Constants.PREF_WIFI_SSID_WHITELIST,
-            java.util.HashSet<kotlin.String?>()
+            Constants.PREF_WIFI_SSID_WHITELIST,
+            java.util.HashSet()
         )!!
         val prefWifiWhitelistEnabled = !whitelistedWifiSsids.isEmpty()
         val prefRunInFlightMode =
             mPreferences!!.getBoolean(Constants.PREF_RUN_IN_FLIGHT_MODE, false)
         val prefPowerSource: String = mPreferences!!.getString(
-            com.nutomic.syncthingandroid.service.Constants.PREF_POWER_SOURCE,
-            RunConditionMonitor.Companion.POWER_SOURCE_CHARGER_BATTERY
+            Constants.PREF_POWER_SOURCE,
+            POWER_SOURCE_CHARGER_BATTERY
         )!!
         val prefRespectPowerSaving =
             mPreferences!!.getBoolean(Constants.PREF_RESPECT_BATTERY_SAVING, true)
@@ -177,7 +172,7 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
             return RunConditionCheckResult.SHOULD_RUN
         }
 
-        val blockerReasons: MutableList<BlockerReason?> = ArrayList<BlockerReason?>()
+        val blockerReasons: MutableList<BlockerReason?> = ArrayList()
 
         // PREF_POWER_SOURCE
         when (prefPowerSource) {
@@ -261,10 +256,8 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
                 blockerReasons.add(BlockerReason.NO_ALLOWED_NETWORK)
             } else if (prefRunOnMobileData) {
                 blockerReasons.add(BlockerReason.NO_MOBILE_CONNECTION)
-            } else if (prefRunOnWifi) {
-                blockerReasons.add(BlockerReason.NO_WIFI_CONNECTION)
             } else {
-                blockerReasons.add(BlockerReason.NO_NETWORK_OR_FLIGHTMODE)
+                blockerReasons.add(BlockerReason.NO_WIFI_CONNECTION)
             }
         }
         return RunConditionCheckResult(blockerReasons)
@@ -313,7 +306,7 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
                 )
                 return false
             }
-            return powerManager.isPowerSaveMode()
+            return powerManager.isPowerSaveMode
         }
 
     private val isFlightMode: Boolean
@@ -325,7 +318,7 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
         get() {
             val cm = mContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             val active = cm.activeNetwork ?: return false
-            return cm.isActiveNetworkMetered()
+            return cm.isActiveNetworkMetered
         }
 
     private val isMobileDataConnection: Boolean
@@ -341,7 +334,7 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
         }
 
     private fun isWifiConnectionWhitelisted(whitelistedSsids: MutableSet<String?>): Boolean {
-        val wifiManager = mContext.getApplicationContext()
+        val wifiManager = mContext.applicationContext
             .getSystemService(Context.WIFI_SERVICE) as WifiManager
         @Suppress("DEPRECATION")
         val wifiInfo = wifiManager.connectionInfo

@@ -21,7 +21,7 @@ class AppConfigReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         (context.applicationContext as SyncthingApp).component()!!.inject(this)
         when (intent.action) {
-            ACTION_START -> BootReceiver.Companion.startServiceCompat(context)
+            ACTION_START -> BootReceiver.startServiceCompat(context)
             ACTION_STOP -> if (startServiceOnBoot(context)) {
                 mNotificationHandler!!.showStopSyncthingWarningNotification()
             } else {
