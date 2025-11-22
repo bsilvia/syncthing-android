@@ -9,6 +9,7 @@ import android.util.Log
 import java.io.File
 import java.lang.reflect.Array
 import java.util.Arrays
+import androidx.core.net.toUri
 
 /**
  * Utils for dealing with Storage Access Framework URIs.
@@ -88,7 +89,7 @@ object FileUtils {
             val isPrimary = storageVolumeClazz.getMethod("isPrimary")
             val result = getVolumeList.invoke(mStorageManager)
 
-            val length = Array.getLength(result)
+            val length = Array.getLength(result!!)
             for (i in 0..<length) {
                 val storageVolumeElement = Array.get(result, i)
                 val uuid = getUuid.invoke(storageVolumeElement) as String?
@@ -121,7 +122,7 @@ object FileUtils {
             // >= API level 30
             val getDir = storageVolumeClazz.getMethod("getDirectory")
             val file = getDir.invoke(storageVolumeElement) as File?
-            return file!!.getPath()
+            return file!!.path
         } catch (e: NoSuchMethodException) {
             // Not present in API level 30, available at some earlier point.
             val getPath = storageVolumeClazz.getMethod("getPath")
@@ -162,13 +163,11 @@ object FileUtils {
                 return null
             }
             // Extract the volumeId, e.g. "abcd-efgh"
-            val volumeId: String? = segments[2]
+            val volumeId: String = segments[2]
             // Build the content Uri for our private "files" folder.
-            return Uri.parse(
-                "content://com.android.externalstorage.documents/document/" +
-                        volumeId + "%3AAndroid%2Fdata%2F" +
-                        context.getPackageName() + "%2Ffiles"
-            )
+            return ("content://com.android.externalstorage.documents/document/" +
+                    volumeId + "%3AAndroid%2Fdata%2F" +
+                    context.packageName + "%2Ffiles").toUri()
         } catch (e: Exception) {
             Log.w(TAG, "getExternalFilesDirUri exception", e)
         }
@@ -183,24 +182,24 @@ object FileUtils {
     private fun getVolumeIdFromTreeUri(treeUri: Uri?): String? {
         val docId = DocumentsContract.getTreeDocumentId(treeUri)
         val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-        if (split.size > 0) {
-            return split[0]
+        return if (split.isNotEmpty()) {
+            split[0]
         } else {
-            return null
+            null
         }
     }
 
     private fun getDocumentPathFromTreeUri(treeUri: Uri?): String {
         val docId = DocumentsContract.getTreeDocumentId(treeUri)
         val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-        if ((split.size >= 2) && (split[1] != null)) return split[1]
+        if (split.size >= 2) return split[1]
         else return File.separator
     }
 
     @JvmStatic
-    fun cutTrailingSlash(path: String): String? {
+    fun cutTrailingSlash(path: String): String {
         if (path.endsWith(File.separator)) {
-            return path.substring(0, path.length - 1)
+            return path.dropLast(1)
         }
         return path
     }

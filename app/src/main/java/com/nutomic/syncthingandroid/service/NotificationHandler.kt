@@ -35,7 +35,7 @@ class NotificationHandler(context: Context) {
     private var appShutdownInProgress = false
 
     init {
-        Objects.requireNonNull<DaggerComponent?>((context.getApplicationContext() as SyncthingApp).component())
+        Objects.requireNonNull<DaggerComponent>((context.applicationContext as SyncthingApp).component())
             .inject(this)
         mContext = context
         mNotificationManager =
@@ -134,7 +134,6 @@ class NotificationHandler(context: Context) {
             SyncthingService.State.DISABLED -> title = R.string.syncthing_disabled
             SyncthingService.State.STARTING -> title = R.string.syncthing_starting
             SyncthingService.State.ACTIVE -> title = R.string.syncthing_active
-            else -> {}
         }
 
         /**
