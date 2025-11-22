@@ -39,12 +39,11 @@ class ConfigXml(private val mContext: Context) {
     @Inject
     var mPreferences: SharedPreferences? = null
 
-    private val mConfigFile: File
+    private val mConfigFile: File = Constants.getConfigFile(mContext)
 
     private var mConfig: Document? = null
 
     init {
-        mConfigFile = Constants.getConfigFile(mContext)
         val isFirstStart = !mConfigFile.exists()
         if (isFirstStart) {
             Log.i(TAG, "App started for the first time. Generating keys and config.")

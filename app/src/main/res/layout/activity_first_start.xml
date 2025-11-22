@@ -6,7 +6,7 @@
     tools:context="com.nutomic.syncthingandroid.activities.FirstStartActivity"
     tools:showIn="@layout/activity_first_start">
 
-    <androidx.viewpager.widget.ViewPager
+    <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

@@ -7,7 +7,6 @@ import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.DialogInterface
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Bitmap
@@ -33,10 +32,11 @@ import androidx.core.net.toUri
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentPagerAdapter
-import androidx.viewpager.widget.ViewPager
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import com.annimon.stream.function.Consumer
 import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import com.nutomic.syncthingandroid.R
 import com.nutomic.syncthingandroid.SyncthingApp
 import com.nutomic.syncthingandroid.fragments.DeviceListFragment
@@ -52,7 +52,6 @@ import com.nutomic.syncthingandroid.util.Util.dismissDialogSafe
 import com.nutomic.syncthingandroid.util.Util.getAlertDialogBuilder
 import java.util.Date
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 import kotlin.math.min
 
 /**
@@ -67,7 +66,7 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
 
     private var mBatteryOptimizationDialogDismissed = false
 
-    private var mViewPager: ViewPager? = null
+    private var mViewPager: ViewPager2? = null
 
     private var mFolderListFragment: FolderListFragment? = null
     private var mDeviceListFragment: DeviceListFragment? = null
@@ -176,27 +175,19 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
             return firstInstallTime
         }
 
-    private val mSectionsPagerAdapter: FragmentPagerAdapter =
-        object : FragmentPagerAdapter(supportFragmentManager) {
-            override fun getItem(position: Int): Fragment {
-                return (if (position == 0)
-                    mFolderListFragment
-                else
-                    mDeviceListFragment)!!
-            }
+    private lateinit var mSectionsPagerAdapter: FragmentStateAdapter
 
-            override fun getCount(): Int {
-                return 2
-            }
+    private inner class SectionsPagerAdapter(activity: androidx.fragment.app.FragmentActivity) :
+        FragmentStateAdapter(activity) {
+        override fun getItemCount(): Int = 2
 
-            override fun getPageTitle(position: Int): CharSequence? {
-                return when (position) {
-                    0 -> getResources().getString(R.string.folders_fragment_title)
-                    1 -> getResources().getString(R.string.devices_fragment_title)
-                    else -> position.toString()
-                }
-            }
+        override fun createFragment(position: Int): Fragment {
+            return if (position == 0)
+                mFolderListFragment ?: FolderListFragment()
+            else
+                mDeviceListFragment ?: DeviceListFragment()
         }
+    }
 
     /**
      * Initializes tab navigation.
@@ -206,7 +197,7 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
         (application as SyncthingApp).component()!!.inject(this)
 
         setContentView(R.layout.activity_main)
-        mDrawerLayout = findViewById<DrawerLayout>(R.id.drawer_layout)
+        mDrawerLayout = findViewById(R.id.drawer_layout)
 
         val fm = supportFragmentManager
         if (savedInstanceState != null) {
@@ -225,12 +216,24 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
             mDrawerFragment = DrawerFragment()
         }
 
-        mViewPager = findViewById<ViewPager>(R.id.pager)
-        mViewPager!!.setAdapter(mSectionsPagerAdapter)
+        try {
+            mViewPager = findViewById(R.id.pager)
+        } catch (e: Exception) {
+            Log.e(TAG, "onCreate", e)
+        }
+        mViewPager = findViewById(R.id.pager)
+        mSectionsPagerAdapter = SectionsPagerAdapter(this)
+        mViewPager!!.adapter = mSectionsPagerAdapter
         val tabLayout = findViewById<TabLayout>(R.id.tabContainer)
-        tabLayout.setupWithViewPager(mViewPager)
+        TabLayoutMediator(tabLayout, mViewPager!!) { tab, position ->
+            tab.text = when (position) {
+                0 -> getString(R.string.folders_fragment_title)
+                1 -> getString(R.string.devices_fragment_title)
+                else -> position.toString()
+            }
+        }.attach()
         if (savedInstanceState != null) {
-            mViewPager!!.setCurrentItem(savedInstanceState.getInt("currentTab"))
+            mViewPager!!.currentItem = savedInstanceState.getInt("currentTab")
             if (savedInstanceState.getBoolean(IS_SHOWING_RESTART_DIALOG)) {
                 showRestartDialog()
             }
@@ -238,12 +241,14 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
                 BATTERY_DIALOG_DISMISSED
             )
             if (savedInstanceState.getBoolean(IS_QRCODE_DIALOG_DISPLAYED)) {
-                showQrCodeDialog(
-                    savedInstanceState.getString(DEVICEID_KEY),
-                    savedInstanceState.getParcelable<Bitmap?>(
-                        QRCODE_BITMAP_KEY
-                    )
-                )
+                val deviceId = savedInstanceState.getString(DEVICE_ID_KEY)
+                val qrBitmap: Bitmap? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    savedInstanceState.getParcelable(QRCODE_BITMAP_KEY, Bitmap::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    savedInstanceState.getParcelable(QRCODE_BITMAP_KEY)
+                }
+                showQrCodeDialog(deviceId, qrBitmap)
             }
         }
 
@@ -251,7 +256,7 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
         mDrawerToggle = Toggle(this, mDrawerLayout)
         mDrawerLayout!!.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
         mDrawerLayout!!.addDrawerListener(mDrawerToggle!!)
-        setOptimalDrawerWidth(findViewById<View>(R.id.drawer))
+        setOptimalDrawerWidth(findViewById(R.id.drawer))
 
         // SyncthingService needs to be started from this activity as the user
         // can directly launch this activity from the recent activity switcher.
@@ -263,7 +268,6 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
         }
 
         onNewIntent(intent)
-
 
         onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -349,7 +353,7 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
                 (qrCode.getDrawable() as BitmapDrawable).bitmap
             )
             checkNotNull(deviceID)
-            outState.putString(DEVICEID_KEY, deviceID.getText().toString())
+            outState.putString(DEVICE_ID_KEY, deviceID.getText().toString())
         }
         dismissDialogSafe(mRestartDialog, this)
     }
@@ -384,7 +388,7 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
                         .setAction(SyncthingService.ACTION_RESTART)
                 )
             }
-            .setNegativeButton(android.R.string.no, null)
+            .setNegativeButton(android.R.string.cancel, null)
             .create()
     }
 
@@ -544,7 +548,7 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
         private const val BATTERY_DIALOG_DISMISSED = "BATTERY_DIALOG_STATE"
         private const val IS_QRCODE_DIALOG_DISPLAYED = "QRCODE_DIALOG_STATE"
         private const val QRCODE_BITMAP_KEY = "QRCODE_BITMAP"
-        private const val DEVICEID_KEY = "DEVICEID"
+        private const val DEVICE_ID_KEY = "DEVICEID"
 
         /**
          * Time after first start when usage reporting dialog should be shown.
