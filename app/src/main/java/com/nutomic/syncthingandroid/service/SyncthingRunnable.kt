@@ -66,45 +66,46 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
         mSyncthingBinary = Constants.getSyncthingBinary(mContext)
         mLogFile = Constants.getLogFile(mContext)
 
+        val logLevel = "DEBUG"
+
         // Get preferences relevant to starting syncthing core.
         mUseRoot = mPreferences!!.getBoolean(Constants.PREF_USE_ROOT, false) && Shell.SU.available()
         when (command) {
             Command.deviceid -> mCommand = arrayOf<String>(
                 mSyncthingBinary.path,
-                "-home",
-                mContext.filesDir.toString(),
-                "--device-id"
+                "device-id",
+                "--home=${mContext.filesDir}"
             )
 
             Command.generate -> mCommand = arrayOf<String>(
                 mSyncthingBinary.path,
-                "-generate",
-                mContext.filesDir.toString(),
-                "-logflags=0"
+                "generate",
+                "--home=${mContext.filesDir}"
             )
 
             Command.main -> mCommand = arrayOf<String>(
                 mSyncthingBinary.path,
-                "-home",
-                mContext.filesDir.toString(),
-                "-no-browser",
-                "-logflags=0"
+                "--home=${mContext.filesDir}",
+                "--no-browser",
+                "--log-level=$logLevel"
             )
 
+            // TODO - this has the wrong cmd line arg
             Command.resetdatabase -> mCommand = arrayOf<String>(
                 mSyncthingBinary.path,
-                "-home",
+                "--home",
                 mContext.filesDir.toString(),
-                "-reset-database",
-                "-logflags=0"
+                "--reset-database",
+                "--log-level=$logLevel"
             )
 
+            // TODO - this has the wrong cmd line arg
             Command.resetdeltas -> mCommand = arrayOf<String>(
                 mSyncthingBinary.path,
-                "-home",
+                "--home",
                 mContext.filesDir.toString(),
                 "-reset-deltas",
-                "-logflags=0"
+                "--log-level=$logLevel"
             )
         }
     }
