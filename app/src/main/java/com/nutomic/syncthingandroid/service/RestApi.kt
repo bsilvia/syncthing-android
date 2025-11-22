@@ -278,8 +278,8 @@ class RestApi(
     fun ignoreDevice(deviceId: String, deviceName: String?, deviceAddress: String?) {
         synchronized(mConfigLock) {
             // Check if the device has already been ignored.
-            for (remoteIgnoredDevice in mConfig!!.remoteIgnoredDevices) {
-                if (deviceId == remoteIgnoredDevice.deviceID) {
+            for (remoteIgnoredDevice in mConfig!!.remoteIgnoredDevices!!) {
+                if (deviceId == remoteIgnoredDevice?.deviceID) {
                     // Device already ignored.
                     Log.d(TAG, "Device already ignored [$deviceId]")
                     return
@@ -291,7 +291,7 @@ class RestApi(
             remoteIgnoredDevice.address = deviceAddress
             remoteIgnoredDevice.name = deviceName
             remoteIgnoredDevice.time = dateFormat.format(Date())
-            mConfig!!.remoteIgnoredDevices.add(remoteIgnoredDevice)
+            mConfig!!.remoteIgnoredDevices!!.add(remoteIgnoredDevice)
             sendConfig()
             Log.d(TAG, "Ignored device [$deviceId]")
         }
@@ -304,8 +304,8 @@ class RestApi(
      */
     fun ignoreFolder(deviceId: String, folderId: String, folderLabel: String?) {
         synchronized(mConfigLock) {
-            for (device in mConfig!!.devices) {
-                if (deviceId == device.deviceID) {
+            for (device in mConfig!!.devices!!) {
+                if (deviceId == device?.deviceID) {
                     /*
                      * Check if the folder has already been ignored.
                      */
@@ -351,9 +351,9 @@ class RestApi(
     fun undoIgnoredDevicesAndFolders() {
         Log.d(TAG, "Undo ignoring devices and folders ...")
         synchronized(mConfigLock) {
-            mConfig!!.remoteIgnoredDevices.clear()
-            for (device in mConfig!!.devices) {
-                device.ignoredFolders.clear()
+            mConfig!!.remoteIgnoredDevices?.clear()
+            for (device in mConfig!!.devices!!) {
+                device?.ignoredFolders?.clear()
             }
         }
     }
@@ -440,7 +440,7 @@ class RestApi(
     fun createFolder(folder: Folder?) {
         synchronized(mConfigLock) {
             // Add the new folder to the model.
-            mConfig!!.folders.add(folder)
+            mConfig!!.folders?.add(folder)
             // Send model changes to syncthing, does not require a restart.
             sendConfig()
         }
@@ -449,7 +449,7 @@ class RestApi(
     fun updateFolder(newFolder: Folder) {
         synchronized(mConfigLock) {
             removeFolderInternal(newFolder.id)
-            mConfig!!.folders.add(newFolder)
+            mConfig!!.folders?.add(newFolder)
             sendConfig()
         }
     }
@@ -467,10 +467,10 @@ class RestApi(
 
     private fun removeFolderInternal(id: String?) {
         synchronized(mConfigLock) {
-            val it = mConfig!!.folders.iterator()
+            val it = mConfig!!.folders?.iterator()!!
             while (it.hasNext()) {
                 val f = it.next()
-                if (f.id == id) {
+                if (f?.id == id) {
                     it.remove()
                     break
                 }
@@ -489,7 +489,7 @@ class RestApi(
             devices = deepCopy(
                 mConfig!!.devices,
                 object :
-                    com.google.common.reflect.TypeToken<MutableList<Device?>>() {}.type
+                    com.google.common.reflect.TypeToken<MutableList<Device>>() {}.type
             )!!
         }
 
@@ -530,7 +530,7 @@ class RestApi(
     fun addDevice(device: Device, errorListener: OnResultListener1<String?>) {
         normalizeDeviceId(device.deviceID, { _: String? ->
             synchronized(mConfigLock) {
-                mConfig!!.devices.add(device)
+                mConfig!!.devices?.add(device)
                 sendConfig()
             }
         }, errorListener)
@@ -539,7 +539,7 @@ class RestApi(
     fun editDevice(newDevice: Device) {
         synchronized(mConfigLock) {
             removeDeviceInternal(newDevice.deviceID)
-            mConfig!!.devices.add(newDevice)
+            mConfig!!.devices?.add(newDevice)
             sendConfig()
         }
     }
@@ -554,10 +554,10 @@ class RestApi(
 
     private fun removeDeviceInternal(deviceId: String?) {
         synchronized(mConfigLock) {
-            val it = mConfig!!.devices.iterator()
+            val it = mConfig!!.devices?.iterator()!!
             while (it.hasNext()) {
                 val d = it.next()
-                if (d.deviceID == deviceId) {
+                if (d?.deviceID == deviceId) {
                     it.remove()
                     break
                 }
