@@ -393,7 +393,8 @@ class DeviceActivity : SyncthingActivity(), View.OnClickListener {
 
     private fun initDevice() {
         mDevice = Device()
-        mDevice!!.name = intent.getStringExtra(EXTRA_DEVICE_NAME)!!
+        // TODO - is extra device name ever provided?
+        mDevice!!.name = intent.getStringExtra(EXTRA_DEVICE_NAME) ?: ""
         mDevice!!.deviceID = intent.getStringExtra(EXTRA_DEVICE_ID)
         mDevice!!.addresses = DYNAMIC_ADDRESS
         mDevice!!.compression = Compression.METADATA.getValue(this)
