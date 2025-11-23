@@ -80,7 +80,11 @@ class NotificationHandler(context: Context) {
     }
 
     private fun getNotificationBuilder(channel: NotificationChannel?): NotificationCompat.Builder {
-        val channelId = channel?.id ?: CHANNEL_INFO
+        val channelId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            channel?.id ?: CHANNEL_INFO
+        } else {
+            CHANNEL_INFO
+        }
         return NotificationCompat.Builder(mContext, channelId)
     }
 

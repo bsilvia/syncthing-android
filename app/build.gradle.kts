@@ -29,7 +29,9 @@ dependencies {
     implementation("androidx.core:core-ktx:1.17.0")
     kapt("com.google.dagger:dagger-compiler:2.57.2")
     androidTestImplementation("androidx.test:rules:1.7.0")
-    androidTestImplementation("androidx.annotation:annotation:1.9.1")
+    // Align annotation version with other AndroidX constraints to avoid resolution
+    // conflicts during lint and test configuration resolution.
+    androidTestImplementation("androidx.annotation:annotation:1.8.1")
 }
 
 android {

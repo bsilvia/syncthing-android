@@ -141,80 +141,31 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
         else
             null
         try {
-            wakeLock?.acquire()
-            increaseInotifyWatches()
-
-            val targetEnv = buildEnvironment()
-            process = setupAndLaunch(targetEnv)
-
-            mSyncthing.set(process)
-
-            var lInfo: Thread? = null
-            var lWarn: Thread? = null
-            if (returnStdOut) {
-                var br: BufferedReader? = null
+            if (wakeLock != null) {
+                wakeLock.acquire()
                 try {
-                    br = BufferedReader(InputStreamReader(process.inputStream, Charsets.UTF_8))
-                    var line: String
-                    while ((br.readLine().also { line = it }) != null) {
-                        Log.println(Log.INFO, TAG_NATIVE, line)
-                        capturedStdOut = capturedStdOut + line + "\n"
-                    }
-                } catch (e: IOException) {
-                    Log.w(TAG, "Failed to read Syncthing's command line output", e)
+                    increaseInotifyWatches()
+                    val (resultStdOut, proc) = runSyncthingCore(returnStdOut)
+                    capturedStdOut = resultStdOut
+                    process = proc
                 } finally {
-                    br?.close()
+                    try {
+                        wakeLock.release()
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Failed to release wakelock", e)
+                    }
                 }
             } else {
-                lInfo = log(process.inputStream, Log.INFO, true)
-                lWarn = log(process.errorStream, Log.WARN, true)
-            }
-
-            niceSyncthing()
-
-            ret = process.waitFor()
-            Log.i(TAG, "Syncthing exited with code $ret")
-            mSyncthing.set(null)
-            lInfo?.join()
-            lWarn?.join()
-
-            when (ret) {
-                0, 137 -> {}
-                1 -> {
-                    Log.w(
-                        TAG,
-                        "Another Syncthing instance is already running, requesting restart via SyncthingService intent"
-                    )
-                    // Restart was requested via Rest API call.
-                    Log.i(TAG, "Restarting syncthing")
-                    mContext.startService(
-                        Intent(mContext, SyncthingService::class.java)
-                            .setAction(SyncthingService.ACTION_RESTART)
-                    )
-                }
-
-                3 -> {
-                    Log.i(TAG, "Restarting syncthing")
-                    mContext.startService(
-                        Intent(mContext, SyncthingService::class.java)
-                            .setAction(SyncthingService.ACTION_RESTART)
-                    )
-                }
-
-                else -> {
-                    Log.w(TAG, "Syncthing has crashed (exit code $ret)")
-                    mNotificationHandler!!.showCrashedNotification(
-                        R.string.notification_crash_title,
-                        false
-                    )
-                }
+                increaseInotifyWatches()
+                val (resultStdOut, proc) = runSyncthingCore(returnStdOut)
+                capturedStdOut = resultStdOut
+                process = proc
             }
         } catch (e: IOException) {
             Log.e(TAG, "Failed to execute syncthing binary or read output", e)
         } catch (e: InterruptedException) {
             Log.e(TAG, "Failed to execute syncthing binary or read output", e)
         } finally {
-            wakeLock?.release()
             process?.destroy()
         }
         return capturedStdOut
@@ -530,6 +481,84 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
             pb.environment().putAll(env)
             return pb.start()
         }
+    }
+
+    /**
+     * Core syncthing execution logic extracted to a single method so both wakeLock
+     * and non-wakeLock code paths reuse the same implementation.
+     * Returns Pair(capturedStdOut, process)
+     */
+    @Throws(IOException::class, InterruptedException::class)
+    private fun runSyncthingCore(returnStdOut: Boolean): Pair<String, Process?> {
+        val targetEnv = buildEnvironment()
+        val process = setupAndLaunch(targetEnv)
+
+        mSyncthing.set(process)
+
+        var capturedStdOut = ""
+        var lInfo: Thread? = null
+        var lWarn: Thread? = null
+        if (returnStdOut) {
+            var br: BufferedReader? = null
+            try {
+                br = BufferedReader(InputStreamReader(process.inputStream, Charsets.UTF_8))
+                var line: String
+                while ((br.readLine().also { line = it }) != null) {
+                    Log.println(Log.INFO, TAG_NATIVE, line)
+                    capturedStdOut = capturedStdOut + line + "\n"
+                }
+            } catch (e: IOException) {
+                Log.w(TAG, "Failed to read Syncthing's command line output", e)
+            } finally {
+                br?.close()
+            }
+        } else {
+            lInfo = log(process.inputStream, Log.INFO, true)
+            lWarn = log(process.errorStream, Log.WARN, true)
+        }
+
+        niceSyncthing()
+
+        val ret = process.waitFor()
+        Log.i(TAG, "Syncthing exited with code $ret")
+        mSyncthing.set(null)
+        lInfo?.join()
+        lWarn?.join()
+
+        when (ret) {
+            0, 137 -> {
+            }
+
+            1 -> {
+                Log.w(
+                    TAG,
+                    "Another Syncthing instance is already running, requesting restart via SyncthingService intent"
+                )
+                Log.i(TAG, "Restarting syncthing")
+                mContext.startService(
+                    Intent(mContext, SyncthingService::class.java)
+                        .setAction(SyncthingService.ACTION_RESTART)
+                )
+            }
+
+            3 -> {
+                Log.i(TAG, "Restarting syncthing")
+                mContext.startService(
+                    Intent(mContext, SyncthingService::class.java)
+                        .setAction(SyncthingService.ACTION_RESTART)
+                )
+            }
+
+            else -> {
+                Log.w(TAG, "Syncthing has crashed (exit code $ret)")
+                mNotificationHandler!!.showCrashedNotification(
+                    R.string.notification_crash_title,
+                    false
+                )
+            }
+        }
+
+        return Pair(capturedStdOut, process)
     }
 
     companion object {

@@ -19,7 +19,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
-import androidx.annotation.RequiresApi
+// Note: avoid annotating lifecycle methods with @RequiresApi; use runtime checks instead
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
@@ -59,7 +59,6 @@ class FirstStartActivity : Activity() {
     @Inject
     var mPreferences: SharedPreferences? = null
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -112,7 +111,6 @@ class FirstStartActivity : Activity() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     fun onBtnNextClick() {
         val slide = currentSlide()
         // Check if we are allowed to advance to the next slide.
@@ -163,14 +161,15 @@ class FirstStartActivity : Activity() {
             true
         )
 
-    @get:RequiresApi(33)
     private val isNotificationPermissionGranted: Boolean
-        get() {
-
-            return ActivityCompat.checkSelfPermission(
+        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            // Prior to Android 13 notifications do not require runtime permission
+            true
         }
 
 
@@ -205,7 +204,6 @@ class FirstStartActivity : Activity() {
         return slides[binding!!.viewPager.currentItem]
     }
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     private fun shouldSkipSlide(slide: Slide): Boolean {
         return when (slide) {
             Slide.INTRO -> !this.isFirstStart
@@ -340,14 +338,15 @@ class FirstStartActivity : Activity() {
         )
     }
 
-    @RequiresApi(33)
     private fun requestNotificationPermission() {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
+            }
         }
     }
 
@@ -363,7 +362,6 @@ class FirstStartActivity : Activity() {
         }
     }
 
-    @RequiresApi(30)
     private fun requestAllFilesAccessPermission() {
         val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
         intent.setData(("package:$packageName").toUri())

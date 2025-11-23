@@ -18,6 +18,8 @@ import android.webkit.SslErrorHandler
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import android.content.SharedPreferences
 import com.nutomic.syncthingandroid.R
 import com.nutomic.syncthingandroid.databinding.ActivityWebGuiBinding
 import com.nutomic.syncthingandroid.service.Constants.getHttpsCertFile
@@ -58,40 +60,63 @@ class WebGuiActivity : StateDialogActivity(), OnServiceStateChangeListener {
          * Catch (self-signed) SSL errors and test if they correspond to Syncthing's certificate.
          */
         override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler, error: SslError) {
-            try {
-                // Use reflection to access the private mX509Certificate field of SslCertificate
-                val sslCert = error.certificate
-                val f = sslCert.javaClass.getDeclaredField("mX509Certificate")
-                f.isAccessible = true
-                val cert = f.get(sslCert) as X509Certificate?
-                if (cert == null) {
-                    Log.w(TAG, "X509Certificate reference invalid")
-                    handler.cancel()
-                    return
-                }
-                cert.verify(mCaCert!!.publicKey)
+            // If user has previously trusted this host, proceed automatically.
+            val host = view?.url?.let { android.net.Uri.parse(it).host }
+            val prefs: SharedPreferences = getSharedPreferences("syncthing_prefs", Context.MODE_PRIVATE)
+            val trusted = prefs.getStringSet("trusted_ssl_hosts", emptySet()) ?: emptySet()
+            if (host != null && trusted.contains(host)) {
+                Log.i(TAG, "Host $host is in trusted list; proceeding despite SSL error")
                 handler.proceed()
-            } catch (e: NoSuchFieldException) {
-                Log.w(TAG, e)
-                handler.cancel()
-            } catch (e: IllegalAccessException) {
-                Log.w(TAG, e)
-                handler.cancel()
-            } catch (e: CertificateException) {
-                Log.w(TAG, e)
-                handler.cancel()
-            } catch (e: NoSuchAlgorithmException) {
-                Log.w(TAG, e)
-                handler.cancel()
-            } catch (e: InvalidKeyException) {
-                Log.w(TAG, e)
-                handler.cancel()
-            } catch (e: NoSuchProviderException) {
-                Log.w(TAG, e)
-                handler.cancel()
-            } catch (e: SignatureException) {
-                Log.w(TAG, e)
-                handler.cancel()
+                return
+            }
+
+            // Otherwise show a dialog offering the user a choice.
+            Log.w(TAG, "onReceivedSslError: SSL error for URL=${view?.url}; showing trust dialog")
+            runOnUiThread {
+                try {
+                    val cert = error.certificate
+                    val issuedTo = cert?.getIssuedTo()?.toString() ?: ""
+                    val issuedBy = cert?.getIssuedBy()?.toString() ?: ""
+                    val msg = StringBuilder()
+                    msg.append("SSL error for site: ")
+                    msg.append(host ?: view?.url)
+                    msg.append("\nError: ")
+                    msg.append(error.primaryError)
+                    if (issuedTo.isNotEmpty() || issuedBy.isNotEmpty()) {
+                        msg.append("\n\nCertificate:\n")
+                        if (issuedTo.isNotEmpty()) msg.append("Issued To: ").append(issuedTo).append("\n")
+                        if (issuedBy.isNotEmpty()) msg.append("Issued By: ").append(issuedBy).append("\n")
+                    }
+
+                    AlertDialog.Builder(this@WebGuiActivity)
+                        .setTitle("SSL error")
+                        .setMessage(msg.toString())
+                        .setPositiveButton("Trust once") { _, _ ->
+                            handler.proceed()
+                        }
+                        .setNeutralButton("Trust always") { _, _ ->
+                            if (host != null) {
+                                val newSet = HashSet(trusted)
+                                newSet.add(host)
+                                prefs.edit().putStringSet("trusted_ssl_hosts", newSet).apply()
+                                Log.i(TAG, "Added $host to trusted SSL hosts")
+                            }
+                            handler.proceed()
+                        }
+                        .setNegativeButton("Cancel") { _, _ ->
+                            handler.cancel()
+                        }
+                        .setCancelable(true)
+                        .show()
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to show SSL trust dialog", e)
+                    try {
+                        Toast.makeText(this@WebGuiActivity, "SSL error loading page", Toast.LENGTH_LONG).show()
+                    } catch (t: Exception) {
+                        Log.w(TAG, "Failed to show SSL error toast", t)
+                    }
+                    handler.cancel()
+                }
             }
         }
 
