@@ -117,7 +117,6 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
     @SuppressLint("WakelockTimeout")
     fun run(returnStdOut: Boolean): String {
         trimLogFile()
-        val ret: Int
         var capturedStdOut = ""
         // Make sure Syncthing is executable
         try {
@@ -215,7 +214,7 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
                 var line: String?
                 while ((br.readLine().also { line = it }) != null) {
                     if (line!!.contains(Constants.FILENAME_SYNCTHING_BINARY)) {
-                        val syncthingPID: String? =
+                        val syncthingPID: String =
                             line.trim { it <= ' ' }.split("\\s+".toRegex())
                                 .dropLastWhile { it.isEmpty() }.toTypedArray()[1]
                         Log.v(
@@ -384,7 +383,7 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
 
         try {
             val lnr = LineNumberReader(FileReader(mLogFile))
-            lnr.skip(Long.Companion.MAX_VALUE)
+            lnr.skip(Long.MAX_VALUE)
 
             val lineCount = lnr.lineNumber
             lnr.close()

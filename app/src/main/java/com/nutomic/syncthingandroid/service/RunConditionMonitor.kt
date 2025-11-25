@@ -321,7 +321,7 @@ class RunConditionMonitor(context: Context, listener: OnRunConditionChangedListe
     private val isMeteredNetworkConnection: Boolean
         get() {
             val cm = mContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val active = cm.activeNetwork ?: return false
+            cm.activeNetwork ?: return false
             return cm.isActiveNetworkMetered
         }
 

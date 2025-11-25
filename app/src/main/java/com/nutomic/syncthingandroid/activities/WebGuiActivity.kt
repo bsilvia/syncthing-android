@@ -62,7 +62,7 @@ class WebGuiActivity : StateDialogActivity(), OnServiceStateChangeListener {
         override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler, error: SslError) {
             // If user has previously trusted this host, proceed automatically.
             val host = view?.url?.let { android.net.Uri.parse(it).host }
-            val prefs: SharedPreferences = getSharedPreferences("syncthing_prefs", Context.MODE_PRIVATE)
+            val prefs: SharedPreferences = getSharedPreferences("syncthing_prefs", MODE_PRIVATE)
             val trusted = prefs.getStringSet("trusted_ssl_hosts", emptySet()) ?: emptySet()
             if (host != null && trusted.contains(host)) {
                 Log.i(TAG, "Host $host is in trusted list; proceeding despite SSL error")
@@ -75,8 +75,8 @@ class WebGuiActivity : StateDialogActivity(), OnServiceStateChangeListener {
             runOnUiThread {
                 try {
                     val cert = error.certificate
-                    val issuedTo = cert?.getIssuedTo()?.toString() ?: ""
-                    val issuedBy = cert?.getIssuedBy()?.toString() ?: ""
+                    val issuedTo = cert?.issuedTo?.toString() ?: ""
+                    val issuedBy = cert?.issuedBy?.toString() ?: ""
                     val msg = StringBuilder()
                     msg.append("SSL error for site: ")
                     msg.append(host ?: view?.url)

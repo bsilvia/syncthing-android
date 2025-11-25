@@ -72,7 +72,7 @@ object FileUtils {
                 Log.v(TAG, "getVolumePath: isHomeVolume")
                 // Reading the environment var avoids hard coding the case of the "documents" folder.
                 return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-                    .getAbsolutePath()
+                    .absolutePath
             }
             if (DOWNLOADS_VOLUME_NAME == volumeId) {
                 Log.v(TAG, "getVolumePath: isDownloadsVolume")
@@ -152,7 +152,7 @@ object FileUtils {
                 Log.w(TAG, "Could not determine app's private files directory on external storage.")
                 return null
             }
-            val absPath = externalFilesDir.get(0)!!.getAbsolutePath()
+            val absPath = externalFilesDir.get(0)!!.absolutePath
             val segments =
                 absPath.split("/".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
             if (segments.size < 2) {

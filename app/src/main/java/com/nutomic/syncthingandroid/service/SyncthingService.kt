@@ -602,7 +602,7 @@ class SyncthingService : Service() {
     }
 
 
-    val webGuiUrl: URL?
+    val webGuiUrl: URL
         get() = mConfig!!.webGuiUrl
 
     val currentRunConditionCheckResult: RunConditionCheckResult?

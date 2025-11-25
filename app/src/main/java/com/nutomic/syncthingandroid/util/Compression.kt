@@ -14,27 +14,27 @@ enum class Compression(val index: Int) {
     ALWAYS(2);
 
     fun getValue(context: Context): String? {
-        return context.getResources().getStringArray(R.array.compress_values)[index]
+        return context.resources.getStringArray(R.array.compress_values)[index]
     }
 
     fun getTitle(context: Context): String? {
-        return context.getResources().getStringArray(R.array.compress_entries)[index]
+        return context.resources.getStringArray(R.array.compress_entries)[index]
     }
 
     companion object {
         @JvmStatic
         fun fromIndex(index: Int): Compression {
             when (index) {
-                0 -> return Compression.NONE
-                2 -> return Compression.ALWAYS
-                else -> return Compression.METADATA
+                0 -> return NONE
+                2 -> return ALWAYS
+                else -> return METADATA
             }
         }
 
         @JvmStatic
         fun fromValue(context: Context, value: String?): Compression {
             var index = 0
-            val values = context.getResources().getStringArray(R.array.compress_values)
+            val values = context.resources.getStringArray(R.array.compress_values)
             for (i in values.indices) {
                 if (values[i] == value) {
                     index = i

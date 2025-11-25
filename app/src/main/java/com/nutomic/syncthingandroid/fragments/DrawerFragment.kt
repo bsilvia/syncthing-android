@@ -13,7 +13,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.preference.PreferenceManager
+import android.preference.PreferenceManager
 import com.android.volley.VolleyError
 import com.google.common.base.Optional
 import com.google.common.collect.ImmutableMap
@@ -279,7 +279,7 @@ class DrawerFragment : Fragment(), View.OnClickListener {
                      * App is running as a service. Show an explanation why exiting syncthing is an
                      * extraordinary request, then ask the user to confirm.
                      */
-                    val mExitConfirmationDialog = Util.getAlertDialogBuilder(mActivity!!)
+                    Util.getAlertDialogBuilder(mActivity!!)
                         .setTitle(R.string.dialog_exit_while_running_as_service_title)
                         .setMessage(R.string.dialog_exit_while_running_as_service_message)
                         .setPositiveButton(

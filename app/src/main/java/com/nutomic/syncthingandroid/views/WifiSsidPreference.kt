@@ -31,7 +31,7 @@ import java.util.TreeSet
  * surrounding double-quotes (") for UTF-8 names, or they are hex strings (if not quoted).
  */
 class WifiSsidPreference @JvmOverloads constructor(context: Context?, attrs: AttributeSet? = null) :
-    MultiSelectListPreference(context, attrs) {
+    MultiSelectListPreference(context!!, attrs) {
     init {
         setDefaultValue(TreeSet<String?>())
     }
@@ -49,7 +49,7 @@ class WifiSsidPreference @JvmOverloads constructor(context: Context?, attrs: Att
         val context = getContext()
 
         var selected: MutableSet<String?> =
-            getSharedPreferences().getStringSet(key, HashSet<String?>())!!
+            getSharedPreferences()?.getStringSet(key, HashSet<String?>())!!
         // from JavaDoc: Note that you must not modify the set instance returned by this call.
         // therefore required to make a defensive copy of the elements
         selected = HashSet(selected)
@@ -93,7 +93,7 @@ class WifiSsidPreference @JvmOverloads constructor(context: Context?, attrs: Att
             entries = stripQuotes(all) // display without surrounding quotes
             entryValues = all.toTypedArray<CharSequence?>() // the value of the entry is the SSID "as is"
             setValues(selected) // the currently selected values (without meanwhile deleted networks)
-            super.showDialog(state)
+            //super.showDialog(state)
         }
 
         if (!hasPerms && context is Activity) {

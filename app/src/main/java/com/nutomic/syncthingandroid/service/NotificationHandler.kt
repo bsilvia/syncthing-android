@@ -302,7 +302,7 @@ class NotificationHandler(context: Context) {
             .setContentText(msg)
             .setTicker(msg)
             .setStyle(NotificationCompat.BigTextStyle().bigText(msg))
-            .setContentTitle(mContext.getText(mContext.getApplicationInfo().labelRes))
+            .setContentTitle(mContext.getText(mContext.applicationInfo.labelRes))
             .setSmallIcon(R.drawable.ic_stat_notify)
             .setAutoCancel(true)
             .setContentIntent(
