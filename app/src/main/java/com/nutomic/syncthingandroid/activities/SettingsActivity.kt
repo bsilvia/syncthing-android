@@ -4,7 +4,10 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.os.AsyncTask
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
@@ -40,7 +43,6 @@ import com.nutomic.syncthingandroid.util.Util.getAlertDialogBuilder
 import com.nutomic.syncthingandroid.views.SttracePreference
 import com.nutomic.syncthingandroid.views.WifiSsidPreference
 import eu.chainfire.libsuperuser.Shell
-import java.lang.ref.WeakReference
 import java.security.InvalidParameterException
 import java.util.Objects
 import javax.inject.Inject
@@ -594,9 +596,9 @@ class SettingsActivity : SyncthingActivity() {
             when (preference.key) {
                 Constants.PREF_USE_ROOT -> {
                     if (mUseRoot!!.isChecked) {
-                        // Only check preference after root was granted.
-                        mUseRoot!!.setChecked(false)
-                        TestRootTask(this).execute()
+                            // Only check preference after root was granted.
+                            mUseRoot!!.setChecked(false)
+                            testRoot()
                     } else {
                         Thread { fixAppDataPermissions(context!!) }.start()
                         mPendingConfig = true
@@ -608,7 +610,7 @@ class SettingsActivity : SyncthingActivity() {
                     getAlertDialogBuilder(context!!)
                         .setMessage(R.string.dialog_confirm_export)
                         .setPositiveButton(
-                            android.R.string.yes
+                            android.R.string.ok
                         ) { _: DialogInterface?, _: Int ->
                             mSyncthingService!!.exportConfig()
                             Toast.makeText(
@@ -619,7 +621,7 @@ class SettingsActivity : SyncthingActivity() {
                                 ), Toast.LENGTH_LONG
                             ).show()
                         }
-                        .setNegativeButton(android.R.string.no, null)
+                        .setNegativeButton(android.R.string.cancel, null)
                         .show()
                     return true
                 }
@@ -628,7 +630,7 @@ class SettingsActivity : SyncthingActivity() {
                     getAlertDialogBuilder(context!!)
                         .setMessage(R.string.dialog_confirm_import)
                         .setPositiveButton(
-                            android.R.string.yes
+                            android.R.string.ok
                         ) { _: DialogInterface?, _: Int ->
                             if (mSyncthingService!!.importConfig()) {
                                 Toast.makeText(
@@ -648,7 +650,7 @@ class SettingsActivity : SyncthingActivity() {
                                 ).show()
                             }
                         }
-                        .setNegativeButton(android.R.string.no, null)
+                        .setNegativeButton(android.R.string.cancel, null)
                         .show()
                     return true
                 }
@@ -657,7 +659,7 @@ class SettingsActivity : SyncthingActivity() {
                     getAlertDialogBuilder(context!!)
                         .setMessage(R.string.undo_ignored_devices_folders_question)
                         .setPositiveButton(
-                            android.R.string.yes
+                            android.R.string.ok
                         ) { _: DialogInterface?, _: Int ->
                             if (mApi == null) {
                                 Toast.makeText(
@@ -675,7 +677,7 @@ class SettingsActivity : SyncthingActivity() {
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
-                        .setNegativeButton(android.R.string.no, null)
+                        .setNegativeButton(android.R.string.cancel, null)
                         .show()
                     return true
                 }
@@ -698,7 +700,7 @@ class SettingsActivity : SyncthingActivity() {
                             ).show()
                         }
                         .setNegativeButton(
-                            android.R.string.no
+                            android.R.string.cancel
                         ) { _: DialogInterface?, _: Int -> }
                         .show()
                     return true
@@ -722,7 +724,7 @@ class SettingsActivity : SyncthingActivity() {
                             ).show()
                         }
                         .setNegativeButton(
-                            android.R.string.no
+                            android.R.string.cancel
                         ) { _: DialogInterface?, _: Int -> }
                         .show()
                     return true
@@ -735,27 +737,20 @@ class SettingsActivity : SyncthingActivity() {
         /**
          * Enables or disables [.mUseRoot] preference depending whether root is available.
          */
-        private class TestRootTask(context: SettingsFragment?) :
-            AsyncTask<Void?, Void?, Boolean?>() {
-            private val refSettingsFragment: WeakReference<SettingsFragment?> = WeakReference<SettingsFragment?>(context)
-
-            override fun doInBackground(vararg params: Void?): Boolean {
-                return Shell.SU.available()
-            }
-
-            override fun onPostExecute(haveRoot: Boolean?) {
-                // Get a reference to the fragment if it is still there.
-                val settingsFragment = refSettingsFragment.get() ?: return
-                if (haveRoot == true) {
-                    settingsFragment.mPendingConfig = true
-                    settingsFragment.mUseRoot!!.setChecked(true)
+        private fun testRoot() {
+            lifecycleScope.launch {
+                val haveRoot = withContext(Dispatchers.IO) {
+                    Shell.SU.available()
+                }
+                if (haveRoot) {
+                    mPendingConfig = true
+                    mUseRoot!!.isChecked = true
                 } else {
                     Toast.makeText(
-                        settingsFragment.activity,
+                        activity,
                         R.string.toast_root_denied,
                         Toast.LENGTH_SHORT
-                    )
-                        .show()
+                    ).show()
                 }
             }
         }
