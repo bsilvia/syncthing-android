@@ -155,7 +155,7 @@ class SettingsActivity : SyncthingActivity() {
 
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
-            (activity!!.application as SyncthingApp).component()!!.inject(this)
+            (requireActivity().application as SyncthingApp).component()!!.inject(this)
             (activity as SyncthingActivity).registerOnServiceConnectedListener(this)
         }
 
@@ -300,8 +300,8 @@ class SettingsActivity : SyncthingActivity() {
             themePreference?.onPreferenceChangeListener = this
 
             try {
-                appVersion?.summary = activity!!.packageManager
-                    ?.getPackageInfo(activity!!.packageName, 0)?.versionName
+                appVersion?.summary = requireActivity().packageManager
+                    ?.getPackageInfo(requireActivity().packageName, 0)?.versionName
             } catch (_: PackageManager.NameNotFoundException) {
                 Log.d(TAG, "Failed to get app version name")
             }
@@ -582,9 +582,9 @@ class SettingsActivity : SyncthingActivity() {
 
                 // Recreate activities with the correct colors
                 Constants.PREF_APP_THEME ->
-                    TaskStackBuilder.create(context!!)
+                    TaskStackBuilder.create(requireContext())
                         .addNextIntent(Intent(activity, MainActivity::class.java))
-                        .addNextIntent(activity!!.intent)
+                        .addNextIntent(requireActivity().intent)
                         .startActivities()
             }
 
@@ -600,14 +600,14 @@ class SettingsActivity : SyncthingActivity() {
                             mUseRoot!!.setChecked(false)
                             testRoot()
                     } else {
-                        Thread { fixAppDataPermissions(context!!) }.start()
+                        Thread { fixAppDataPermissions(requireContext()) }.start()
                         mPendingConfig = true
                     }
                     return true
                 }
 
                 KEY_EXPORT_CONFIG -> {
-                    getAlertDialogBuilder(context!!)
+                    getAlertDialogBuilder(requireContext())
                         .setMessage(R.string.dialog_confirm_export)
                         .setPositiveButton(
                             android.R.string.ok
@@ -627,7 +627,7 @@ class SettingsActivity : SyncthingActivity() {
                 }
 
                 KEY_IMPORT_CONFIG -> {
-                    getAlertDialogBuilder(context!!)
+                    getAlertDialogBuilder(requireContext())
                         .setMessage(R.string.dialog_confirm_import)
                         .setPositiveButton(
                             android.R.string.ok
@@ -656,7 +656,7 @@ class SettingsActivity : SyncthingActivity() {
                 }
 
                 KEY_UNDO_IGNORED_DEVICES_FOLDERS -> {
-                    getAlertDialogBuilder(context!!)
+                    getAlertDialogBuilder(requireContext())
                         .setMessage(R.string.undo_ignored_devices_folders_question)
                         .setPositiveButton(
                             android.R.string.ok
@@ -686,7 +686,7 @@ class SettingsActivity : SyncthingActivity() {
                     intent = Intent(activity, SyncthingService::class.java)
                         .setAction(SyncthingService.ACTION_RESET_DATABASE)
 
-                    getAlertDialogBuilder(context!!)
+                    getAlertDialogBuilder(requireContext())
                         .setTitle(R.string.st_reset_database_title)
                         .setMessage(R.string.st_reset_database_question)
                         .setPositiveButton(
@@ -710,7 +710,7 @@ class SettingsActivity : SyncthingActivity() {
                     intent = Intent(activity, SyncthingService::class.java)
                         .setAction(SyncthingService.ACTION_RESET_DELTAS)
 
-                    getAlertDialogBuilder(context!!)
+                    getAlertDialogBuilder(requireContext())
                         .setTitle(R.string.st_reset_deltas_title)
                         .setMessage(R.string.st_reset_deltas_question)
                         .setPositiveButton(

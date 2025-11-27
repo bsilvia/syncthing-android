@@ -47,7 +47,7 @@ class ConfigXml(private val mContext: Context) {
         val isFirstStart = !mConfigFile.exists()
         if (isFirstStart) {
             Log.i(TAG, "App started for the first time. Generating keys and config.")
-            SyncthingRunnable(mContext, SyncthingRunnable.Command.generate).run()
+            SyncthingRunnable(mContext, SyncthingRunnable.Command.Generate).run()
         }
 
         readConfig()
@@ -56,8 +56,7 @@ class ConfigXml(private val mContext: Context) {
             var changed = false
 
             Log.i(TAG, "Starting syncthing to retrieve local device id.")
-            val logOutput =
-                SyncthingRunnable(mContext, SyncthingRunnable.Command.deviceid).run(true)
+            val logOutput = SyncthingRunnable(mContext, SyncthingRunnable.Command.DeviceID).run(true)
             val localDeviceID = logOutput.replace("\n", "")
             // Verify local device ID is correctly formatted.
             if (localDeviceID.matches("^([A-Z0-9]{7}-){7}[A-Z0-9]{7}$".toRegex())) {

@@ -190,12 +190,12 @@ class SyncthingService : Service() {
             shutdown(State.INIT) { this.launchStartupTask() }
         } else if (ACTION_RESET_DATABASE == intent.action) {
             shutdown(State.INIT) {
-                SyncthingRunnable(this, SyncthingRunnable.Command.resetdatabase).run()
+                SyncthingRunnable(this, SyncthingRunnable.Command.ResetDatabase).run()
                 launchStartupTask()
             }
         } else if (ACTION_RESET_DELTAS == intent.action) {
             shutdown(State.INIT) {
-                SyncthingRunnable(this, SyncthingRunnable.Command.resetdeltas).run()
+                SyncthingRunnable(this, SyncthingRunnable.Command.ResetDeltas).run()
                 launchStartupTask()
             }
         } else if (ACTION_REFRESH_NETWORK_INFO == intent.action) {
@@ -363,7 +363,7 @@ class SyncthingService : Service() {
             Log.e(TAG, "onStartupTaskCompleteListener: Syncthing binary lifecycle violated")
             return
         }
-        mSyncthingRunnable = SyncthingRunnable(this, SyncthingRunnable.Command.main)
+        mSyncthingRunnable = SyncthingRunnable(this, SyncthingRunnable.Command.Main)
         mSyncthingRunnableThread = Thread(mSyncthingRunnable)
         mSyncthingRunnableThread!!.start()
 

@@ -48,11 +48,11 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
     var mNotificationHandler: NotificationHandler? = null
 
     enum class Command {
-        deviceid,  // Output the device ID to the command line.
-        generate,  // Generate keys, a config file and immediately exit.
-        main,  // Run the main Syncthing application.
-        resetdatabase,  // Reset Syncthing's database
-        resetdeltas,  // Reset Syncthing's delta indexes
+        DeviceID,  // Output the device ID to the command line.
+        Generate,  // Generate keys, a config file and immediately exit.
+        Main,  // Run the main Syncthing application.
+        ResetDatabase,  // Reset Syncthing's database
+        ResetDeltas,  // Reset Syncthing's delta indexes
     }
 
     /**
@@ -71,19 +71,19 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
         // Get preferences relevant to starting syncthing core.
         mUseRoot = mPreferences!!.getBoolean(Constants.PREF_USE_ROOT, false) && Shell.SU.available()
         when (command) {
-            Command.deviceid -> mCommand = arrayOf<String>(
+            Command.DeviceID -> mCommand = arrayOf<String>(
                 mSyncthingBinary.path,
                 "device-id",
                 "--home=${mContext.filesDir}"
             )
 
-            Command.generate -> mCommand = arrayOf<String>(
+            Command.Generate -> mCommand = arrayOf<String>(
                 mSyncthingBinary.path,
                 "generate",
                 "--home=${mContext.filesDir}"
             )
 
-            Command.main -> mCommand = arrayOf<String>(
+            Command.Main -> mCommand = arrayOf<String>(
                 mSyncthingBinary.path,
                 "--home=${mContext.filesDir}",
                 "--no-browser",
@@ -91,7 +91,7 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
             )
 
             // TODO - this has the wrong cmd line arg
-            Command.resetdatabase -> mCommand = arrayOf<String>(
+            Command.ResetDatabase -> mCommand = arrayOf<String>(
                 mSyncthingBinary.path,
                 "--home",
                 mContext.filesDir.toString(),
@@ -100,7 +100,7 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
             )
 
             // TODO - this has the wrong cmd line arg
-            Command.resetdeltas -> mCommand = arrayOf<String>(
+            Command.ResetDeltas -> mCommand = arrayOf<String>(
                 mSyncthingBinary.path,
                 "--home",
                 mContext.filesDir.toString(),
@@ -198,7 +198,7 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
          */
         get() {
             val syncthingPIDs: MutableList<String?> =
-                ArrayList<String?>()
+                ArrayList()
             var ps: Process? = null
             var psOut: DataOutputStream? = null
             var br: BufferedReader? = null
@@ -341,10 +341,9 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
      *
      * @param is The stream to log.
      * @param priority The priority level.
-     * @param saveLog True if the log should be stored to [.mLogFile].
      */
-    private fun log(`is`: InputStream?, priority: Int, saveLog: Boolean): Thread {
-        val t = Thread(Runnable {
+    private fun log(`is`: InputStream?, priority: Int): Thread {
+        val t = Thread {
             var br: BufferedReader? = null
             try {
                 br = BufferedReader(InputStreamReader(`is`, Charsets.UTF_8))
@@ -352,12 +351,10 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
                 while ((br.readLine().also { line = it }) != null) {
                     Log.println(priority, TAG_NATIVE, line!!)
 
-                    if (saveLog) {
-                        try {
-                            mLogFile.appendText(line + "\n", Charsets.UTF_8)
-                        } catch (e: IOException) {
-                            Log.w(TAG, "log: Failed to append to log file", e)
-                        }
+                    try {
+                        mLogFile.appendText(line + "\n", Charsets.UTF_8)
+                    } catch (e: IOException) {
+                        Log.w(TAG, "log: Failed to append to log file", e)
                     }
                 }
             } catch (e: IOException) {
@@ -370,7 +367,7 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
                     Log.w(TAG, "log: Failed to close bufferedReader", e)
                 }
             }
-        })
+        }
         t.start()
         return t
     }
@@ -418,7 +415,7 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
             " ",
             mPreferences!!.getStringSet(
                 Constants.PREF_DEBUG_FACILITIES_ENABLED,
-                java.util.HashSet<String?>()
+                java.util.HashSet()
             )!!
         )
         val externalFilesDir = mContext.getExternalFilesDir(null)
@@ -512,8 +509,8 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
                 br?.close()
             }
         } else {
-            lInfo = log(process.inputStream, Log.INFO, true)
-            lWarn = log(process.errorStream, Log.WARN, true)
+            lInfo = log(process.inputStream, Log.INFO)
+            lWarn = log(process.errorStream, Log.WARN)
         }
 
         niceSyncthing()

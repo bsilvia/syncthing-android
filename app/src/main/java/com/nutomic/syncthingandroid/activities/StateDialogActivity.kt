@@ -33,13 +33,10 @@ abstract class StateDialogActivity : SyncthingActivity() {
         super.onCreate(savedInstanceState)
         registerOnServiceConnectedListener {
             service!!.registerOnServiceStateChangeListener { currentState: SyncthingService.State? ->
-                this.onServiceStateChange(
-                    currentState!!
-                )
+                this.onServiceStateChange(currentState!!)
             }
             service!!.registerOnRunConditionCheckResultChange { _: RunConditionCheckResult? ->
-                this.onRunConditionCheckResultChange(
-                )
+                this.onRunConditionCheckResultChange()
             }
         }
     }
