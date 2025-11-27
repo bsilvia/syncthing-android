@@ -54,7 +54,6 @@ class Options {
 
     companion object {
         const val USAGE_REPORTING_UNDECIDED: Int = 0
-        @JvmField
-        val USAGE_REPORTING_DENIED: Int = -1
+        const val USAGE_REPORTING_DENIED: Int = -1
     }
 }

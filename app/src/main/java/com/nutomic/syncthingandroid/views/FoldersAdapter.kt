@@ -24,6 +24,7 @@ import com.nutomic.syncthingandroid.service.RestApi
 import com.nutomic.syncthingandroid.service.SyncthingService
 import com.nutomic.syncthingandroid.util.Util.readableFileSize
 import java.io.File
+import kotlin.math.roundToInt
 
 /**
  * Generates item views for folder items.
@@ -200,7 +201,8 @@ class FoldersAdapter(private val mContext: Context) : ArrayAdapter<Folder?>(
                 "scanning" -> return c.getString(R.string.state_scanning)
                 "syncing" -> {
                     val percentage = if (folderStatus.globalBytes != 0L)
-                        Math.round((100 * folderStatus.inSyncBytes / folderStatus.globalBytes).toFloat())
+                        (100 * folderStatus.inSyncBytes / folderStatus.globalBytes).toFloat()
+                            .roundToInt()
                     else
                         100
                     return c.getString(R.string.state_syncing, percentage)

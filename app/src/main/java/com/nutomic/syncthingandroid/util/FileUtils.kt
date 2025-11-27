@@ -6,10 +6,9 @@ import android.os.Environment
 import android.os.storage.StorageManager
 import android.provider.DocumentsContract
 import android.util.Log
+import androidx.core.net.toUri
 import java.io.File
 import java.lang.reflect.Array
-import java.util.Arrays
-import androidx.core.net.toUri
 
 /**
  * Utils for dealing with Storage Access Framework URIs.
@@ -49,14 +48,14 @@ object FileUtils {
         if (documentPath.endsWith(File.separator)) {
             documentPath = documentPath.dropLast(1)
         }
-        if (documentPath.isNotEmpty()) {
+        return if (documentPath.isNotEmpty()) {
             if (documentPath.startsWith(File.separator)) {
-                return volumePath + documentPath
+                volumePath + documentPath
             } else {
-                return volumePath + File.separator + documentPath
+                volumePath + File.separator + documentPath
             }
         } else {
-            return volumePath
+            volumePath
         }
     }
 
@@ -140,7 +139,7 @@ object FileUtils {
              * e.g. "/storage/abcd-efgh/Android/com.nutomic.syncthinandroid/files"
              */
             val externalFilesDir = ArrayList<File?>()
-            externalFilesDir.addAll(Arrays.asList(*context.getExternalFilesDirs(null)))
+            externalFilesDir.addAll(listOf(*context.getExternalFilesDirs(null)))
             externalFilesDir.remove(context.getExternalFilesDir(null))
             if (externalFilesDir.isEmpty()) {
                 Log.w(TAG, "Could not determine app's private files directory on external storage.")
@@ -168,10 +167,10 @@ object FileUtils {
         return null
     }
 
-    @JvmStatic
-    fun getExternalFilesDirUriJvm(context: Context): Uri? {
-        return getExternalFilesDirUri(context)
-    }
+//    @JvmStatic
+//    fun getExternalFilesDirUriJvm(context: Context): Uri? {
+//        return getExternalFilesDirUri(context)
+//    }
 
     private fun getVolumeIdFromTreeUri(treeUri: Uri?): String? {
         val docId = DocumentsContract.getTreeDocumentId(treeUri)
@@ -186,8 +185,8 @@ object FileUtils {
     private fun getDocumentPathFromTreeUri(treeUri: Uri?): String {
         val docId = DocumentsContract.getTreeDocumentId(treeUri)
         val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-        if (split.size >= 2) return split[1]
-        else return File.separator
+        return if (split.size >= 2) split[1]
+        else File.separator
     }
 
     @JvmStatic

@@ -447,7 +447,7 @@ class SettingsActivity : SyncthingActivity() {
                     } catch (_: Exception) {
                         Toast.makeText(
                             activity,
-                            getResources().getString(
+                            resources.getString(
                                 R.string.invalid_integer_value,
                                 0,
                                 Int.MAX_VALUE
@@ -467,7 +467,7 @@ class SettingsActivity : SyncthingActivity() {
                     } catch (_: Exception) {
                         Toast.makeText(
                             activity,
-                            getResources().getString(
+                            resources.getString(
                                 R.string.invalid_integer_value,
                                 0,
                                 Int.MAX_VALUE

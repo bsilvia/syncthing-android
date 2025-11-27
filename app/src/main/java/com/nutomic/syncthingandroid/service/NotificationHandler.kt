@@ -277,20 +277,20 @@ class NotificationHandler(context: Context) {
         mNotificationManager.notify(ID_MISSING_PERM, n)
     }
 
-    fun showRestartNotification() {
-        val intent = Intent(mContext, SyncthingService::class.java)
-            .setAction(SyncthingService.ACTION_RESTART)
-        val pi = PendingIntent.getService(mContext, 0, intent, Constants.FLAG_IMMUTABLE)
-
-        val n = getNotificationBuilder(mInfoChannel!!)
-            .setContentTitle(mContext.getString(R.string.restart_title))
-            .setContentText(mContext.getString(R.string.restart_notification_text))
-            .setSmallIcon(R.drawable.ic_stat_notify)
-            .setContentIntent(pi)
-            .build()
-        n.flags = n.flags or (Notification.FLAG_ONLY_ALERT_ONCE or Notification.FLAG_AUTO_CANCEL)
-        mNotificationManager.notify(ID_RESTART, n)
-    }
+//    fun showRestartNotification() {
+//        val intent = Intent(mContext, SyncthingService::class.java)
+//            .setAction(SyncthingService.ACTION_RESTART)
+//        val pi = PendingIntent.getService(mContext, 0, intent, Constants.FLAG_IMMUTABLE)
+//
+//        val n = getNotificationBuilder(mInfoChannel!!)
+//            .setContentTitle(mContext.getString(R.string.restart_title))
+//            .setContentText(mContext.getString(R.string.restart_notification_text))
+//            .setSmallIcon(R.drawable.ic_stat_notify)
+//            .setContentIntent(pi)
+//            .build()
+//        n.flags = n.flags or (Notification.FLAG_ONLY_ALERT_ONCE or Notification.FLAG_AUTO_CANCEL)
+//        mNotificationManager.notify(ID_RESTART, n)
+//    }
 
     fun cancelRestartNotification() {
         mNotificationManager.cancel(ID_RESTART)

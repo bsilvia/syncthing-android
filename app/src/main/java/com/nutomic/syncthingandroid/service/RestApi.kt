@@ -89,7 +89,7 @@ class RestApi(
      * [SyncthingService.onApiAvailable]} to indicate that the RestApi class is fully initialized.
      * We do this to avoid getting stuck with our main thread due to synchronous REST queries.
      * The correct indication of full initialisation is crucial to stability as other listeners of
-     * [com.nutomic.syncthingandroid.activities.SettingsActivity.onServiceStateChange] needs cached config and system information available.
+     * [com.nutomic.syncthingandroid.activities.SettingsActivity.SettingsFragment.onServiceStateChange] needs cached config and system information available.
      * e.g. SettingsFragment need "mLocalDeviceId"
      */
     private var asyncQueryConfigComplete = false

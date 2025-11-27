@@ -511,7 +511,7 @@ class DeviceActivity : SyncthingActivity(), View.OnClickListener {
         private const val IS_SHOWING_DISCARD_DIALOG = "DISCARD_FOLDER_DIALOG_STATE"
         private const val IS_SHOWING_COMPRESSION_DIALOG = "COMPRESSION_FOLDER_DIALOG_STATE"
         private const val IS_SHOWING_DELETE_DIALOG = "DELETE_FOLDER_DIALOG_STATE"
-        private const val QR_SCAN_REQUEST_CODE = 777
+//        private const val QR_SCAN_REQUEST_CODE = 777
 
         private val DYNAMIC_ADDRESS = mutableListOf<String?>("dynamic")
     }
