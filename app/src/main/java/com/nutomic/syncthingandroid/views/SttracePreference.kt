@@ -3,8 +3,6 @@ package com.nutomic.syncthingandroid.views
 import android.content.Context
 import androidx.preference.MultiSelectListPreference
 import android.util.AttributeSet
-import android.util.Log
-import java.util.Arrays
 import java.util.TreeSet
 
 /**
@@ -21,7 +19,7 @@ import java.util.TreeSet
  */
 class SttracePreference @JvmOverloads constructor(context: Context?, attrs: AttributeSet? = null) :
     MultiSelectListPreference(context!!, attrs) {
-    private val TAG = "SttracePreference"
+//    private val TAG = "SttracePreference"
 
     init {
         setDefaultValue(TreeSet<String?>())

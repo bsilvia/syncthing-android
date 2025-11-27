@@ -24,10 +24,10 @@ enum class Compression(val index: Int) {
     companion object {
         @JvmStatic
         fun fromIndex(index: Int): Compression {
-            when (index) {
-                0 -> return NONE
-                2 -> return ALWAYS
-                else -> return METADATA
+            return when (index) {
+                0 -> NONE
+                2 -> ALWAYS
+                else -> METADATA
             }
         }
 

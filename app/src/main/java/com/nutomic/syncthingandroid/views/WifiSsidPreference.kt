@@ -1,11 +1,8 @@
 package com.nutomic.syncthingandroid.views
 
 import android.content.Context
-import android.content.pm.PackageManager
 import androidx.preference.MultiSelectListPreference
 import android.util.AttributeSet
-import androidx.core.content.ContextCompat
-import com.nutomic.syncthingandroid.util.PermissionUtil.locationPermissions
 import java.util.TreeSet
 
 /**
@@ -115,11 +112,11 @@ class WifiSsidPreference @JvmOverloads constructor(context: Context?, attrs: Att
 //        return true
 //    }
 
-    /**
-     * Returns a copy of the given WiFi SSIDs with quotes stripped.
-     *
-     * @param ssids the list of ssids to strip quotes from
-     */
+//    /**
+//     * Returns a copy of the given WiFi SSIDs with quotes stripped.
+//     *
+//     * @param ssids the list of ssids to strip quotes from
+//     */
 //    private fun stripQuotes(ssids: MutableList<String?>): Array<CharSequence?> {
 //        val result = arrayOfNulls<CharSequence>(ssids.size)
 //        for (i in ssids.indices) {

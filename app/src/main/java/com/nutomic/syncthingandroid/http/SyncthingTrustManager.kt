@@ -15,7 +15,7 @@ import javax.net.ssl.X509TrustManager
  * falls back to a local Syncthing CA certificate if provided via `mHttpsCertPath`.
  * This preserves secure behavior while allowing the app to trust a bundled/local CA.
  */
-internal class SyncthingTrustManager(private val mHttpsCertPath: File?) : X509TrustManager {
+internal class SyncthingTrustManager(mHttpsCertPath: File?) : X509TrustManager {
 
     companion object {
         private const val TAG = "SyncthingTrustManager"

@@ -62,12 +62,9 @@ class ConfigXml(private val mContext: Context) {
             if (localDeviceID.matches("^([A-Z0-9]{7}-){7}[A-Z0-9]{7}$".toRegex())) {
                 changed = changeLocalDeviceName(localDeviceID)
             }
-            changed = changeDefaultFolder() || changed
 
-            // Save changes if we made any.
-            if (changed) {
-                saveChanges()
-            }
+            changeDefaultFolder()
+            saveChanges()
         }
     }
 
@@ -305,7 +302,7 @@ class ConfigXml(private val mContext: Context) {
      * Change default folder id to camera and path to camera folder path.
      * Returns if changes to the config have been made.
      */
-    private fun changeDefaultFolder(): Boolean {
+    private fun changeDefaultFolder() {
         val folder = mConfig!!.documentElement
             .getElementsByTagName("folder").item(0) as Element
         val deviceModel = Build.MODEL
@@ -322,13 +319,12 @@ class ConfigXml(private val mContext: Context) {
         folder.setAttribute("type", Constants.FOLDER_TYPE_SEND_ONLY)
         folder.setAttribute("fsWatcherEnabled", "true")
         folder.setAttribute("fsWatcherDelayS", "10")
-        return true
     }
 
     /**
      * Generates a random String with a given length
      */
-    private fun generateRandomString(length: Int): String {
+    private fun generateRandomString(@Suppress("SameParameterValue") length: Int): String {
         val chars = "abcdefghjkmnpqrstuvwxyz123456789".toCharArray()
         val random = Random()
         val sb = StringBuilder()

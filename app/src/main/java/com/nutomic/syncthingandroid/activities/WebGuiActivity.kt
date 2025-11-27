@@ -37,6 +37,7 @@ import java.security.cert.CertificateException
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import androidx.core.net.toUri
+import androidx.core.content.edit
 
 /**
  * Holds a WebView that shows the web ui of the local syncthing instance.
@@ -57,7 +58,7 @@ class WebGuiActivity : StateDialogActivity(), OnServiceStateChangeListener {
          */
         override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler, error: SslError) {
             // If user has previously trusted this host, proceed automatically.
-            val host = view?.url?.let { android.net.Uri.parse(it).host }
+            val host = view?.url?.toUri()?.host
             val prefs: SharedPreferences = getSharedPreferences("syncthing_prefs", MODE_PRIVATE)
             val trusted = prefs.getStringSet("trusted_ssl_hosts", emptySet()) ?: emptySet()
             if (host != null && trusted.contains(host)) {
@@ -94,7 +95,7 @@ class WebGuiActivity : StateDialogActivity(), OnServiceStateChangeListener {
                             if (host != null) {
                                 val newSet = HashSet(trusted)
                                 newSet.add(host)
-                                prefs.edit().putStringSet("trusted_ssl_hosts", newSet).apply()
+                                prefs.edit {putStringSet("trusted_ssl_hosts", newSet) }
                                 Log.i(TAG, "Added $host to trusted SSL hosts")
                             }
                             handler.proceed()

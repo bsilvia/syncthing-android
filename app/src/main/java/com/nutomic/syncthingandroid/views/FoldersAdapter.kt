@@ -25,6 +25,7 @@ import com.nutomic.syncthingandroid.service.SyncthingService
 import com.nutomic.syncthingandroid.util.Util.readableFileSize
 import java.io.File
 import kotlin.math.roundToInt
+import androidx.core.net.toUri
 
 /**
  * Generates item views for folder items.
@@ -65,7 +66,7 @@ class FoldersAdapter(private val mContext: Context) : ArrayAdapter<Folder?>(
             } else {
                 // Try a second way to find a compatible file explorer app.
                 Log.v(TAG, "openFolder: Fallback to application chooser to open folder.")
-                intent.setDataAndType(Uri.parse(folder.path), "application/*")
+                intent.setDataAndType(folder.path!!.toUri(), "application/*")
                 val chooserIntent =
                     Intent.createChooser(intent, mContext.getString(R.string.open_file_manager))
                 if (chooserIntent != null) {
