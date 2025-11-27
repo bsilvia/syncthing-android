@@ -2,7 +2,7 @@ package com.nutomic.syncthingandroid.views
 
 import android.content.Context
 import android.os.Bundle
-import android.preference.MultiSelectListPreference
+import androidx.preference.MultiSelectListPreference
 import android.util.AttributeSet
 import android.util.Log
 import java.util.Arrays
@@ -31,7 +31,7 @@ class SttracePreference @JvmOverloads constructor(context: Context?, attrs: Attr
     /**
      * Show the dialog.
      */
-    override fun showDialog(state: Bundle?) {
+    fun showDialog(state: Bundle?) {
         var selected: MutableSet<String?> =
             getSharedPreferences()?.getStringSet(key, HashSet<String?>())!!
         // from JavaDoc: Note that you must not modify the set instance returned by this call.
@@ -65,7 +65,7 @@ class SttracePreference @JvmOverloads constructor(context: Context?, attrs: Attr
             val retDebugFacilities: MutableList<String?> =
                 ArrayList()
             var availableDebugFacilities: MutableSet<String?> =
-                getSharedPreferences().getStringSet(
+                getSharedPreferences()?.getStringSet(
                     com.nutomic.syncthingandroid.service.Constants.PREF_DEBUG_FACILITIES_AVAILABLE,
                     java.util.HashSet()
                 )!!

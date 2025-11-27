@@ -17,7 +17,7 @@ dependencies {
     implementation("com.android.volley:volley:1.2.1")
     implementation("commons-io:commons-io:2.21.0")
     implementation("androidx.documentfile:documentfile:1.1.0")
-    implementation("androidx.preference:preference:1.2.1")
+    implementation("androidx.preference:preference-ktx:1.2.1")
 
     implementation("com.journeyapps:zxing-android-embedded:4.3.0") {
         isTransitive = false

@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.content.edit
-import android.preference.PreferenceManager
+import androidx.preference.PreferenceManager
 import com.google.common.base.Function
 import com.google.common.base.Objects
 import com.google.common.base.Optional

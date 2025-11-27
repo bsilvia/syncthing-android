@@ -6,17 +6,19 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.AsyncTask
 import android.os.Bundle
-import android.preference.CheckBoxPreference
-import android.preference.EditTextPreference
-import android.preference.ListPreference
-import android.preference.Preference
-import android.preference.PreferenceFragment
-import android.preference.PreferenceGroup
-import android.preference.PreferenceScreen
 import android.text.TextUtils
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.core.app.TaskStackBuilder
+import androidx.preference.CheckBoxPreference
+import androidx.preference.EditTextPreference
+import androidx.preference.ListPreference
+import androidx.preference.Preference
+import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceGroup
+import androidx.preference.PreferenceScreen
+import androidx.preference.get
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.google.common.collect.Iterables
@@ -35,6 +37,7 @@ import com.nutomic.syncthingandroid.service.SyncthingService.OnServiceStateChang
 import com.nutomic.syncthingandroid.util.Languages
 import com.nutomic.syncthingandroid.util.Util.fixAppDataPermissions
 import com.nutomic.syncthingandroid.util.Util.getAlertDialogBuilder
+import com.nutomic.syncthingandroid.views.SttracePreference
 import com.nutomic.syncthingandroid.views.WifiSsidPreference
 import eu.chainfire.libsuperuser.Shell
 import java.lang.ref.WeakReference
@@ -56,7 +59,7 @@ class SettingsActivity : SyncthingActivity() {
             )
         )
         settingsFragment.setArguments(bundle)
-        fragmentManager.beginTransaction()
+        supportFragmentManager.beginTransaction()
             .replace(R.id.settings_container, settingsFragment)
             .commit()
     }
@@ -89,7 +92,7 @@ class SettingsActivity : SyncthingActivity() {
         }
     }
 
-    class SettingsFragment : PreferenceFragment(), OnServiceConnectedListener,
+    class SettingsFragment : PreferenceFragmentCompat(), OnServiceConnectedListener,
         OnServiceStateChangeListener, Preference.OnPreferenceChangeListener,
         Preference.OnPreferenceClickListener {
         @JvmField
@@ -154,69 +157,69 @@ class SettingsActivity : SyncthingActivity() {
             (activity as SyncthingActivity).registerOnServiceConnectedListener(this)
         }
 
+        override fun onCreatePreferences(
+            savedInstanceState: Bundle?,
+            rootKey: String?
+        ) {
+            setPreferencesFromResource(R.xml.app_settings, rootKey)
+        }
+
         /**
          * Loads layout, sets version from Rest API.
          *
          * Manual target API as we manually check if ActionBar is available (for ActionBar back button).
          */
-        override fun onActivityCreated(savedInstanceState: Bundle?) {
-            super.onActivityCreated(savedInstanceState)
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+            super.onViewCreated(view, savedInstanceState)
+//        }
+//        override fun onActivityCreated(savedInstanceState: Bundle?) {
+//            super.onActivityCreated(savedInstanceState)
 
             addPreferencesFromResource(R.xml.app_settings)
             val screen = preferenceScreen
-            mRunConditions =
-                findPreference(Constants.PREF_RUN_CONDITIONS) as CheckBoxPreference?
-            mStartServiceOnBoot =
-                findPreference(Constants.PREF_START_SERVICE_ON_BOOT) as CheckBoxPreference?
-            mPowerSource =
-                findPreference(Constants.PREF_POWER_SOURCE) as ListPreference?
-            mRunOnMobileData =
-                findPreference(Constants.PREF_RUN_ON_WIFI) as CheckBoxPreference?
-            mRunOnWifi =
-                findPreference(Constants.PREF_RUN_ON_WIFI) as CheckBoxPreference?
-            mRunOnMeteredWifi =
-                findPreference(Constants.PREF_RUN_ON_METERED_WIFI) as CheckBoxPreference?
-            mWifiSsidWhitelist =
-                findPreference(Constants.PREF_WIFI_SSID_WHITELIST) as WifiSsidPreference?
-            mRunInFlightMode =
-                findPreference(Constants.PREF_RUN_IN_FLIGHT_MODE) as CheckBoxPreference?
+            mRunConditions = findPreference<CheckBoxPreference>(Constants.PREF_RUN_CONDITIONS)
+            mStartServiceOnBoot = findPreference<CheckBoxPreference>(Constants.PREF_START_SERVICE_ON_BOOT)
+            mPowerSource = findPreference<ListPreference>(Constants.PREF_POWER_SOURCE)
+            mRunOnMobileData = findPreference<CheckBoxPreference>(Constants.PREF_RUN_ON_WIFI)
+            mRunOnWifi = findPreference<CheckBoxPreference>(Constants.PREF_RUN_ON_WIFI)
+            mRunOnMeteredWifi = findPreference<CheckBoxPreference>(Constants.PREF_RUN_ON_METERED_WIFI)
+            mWifiSsidWhitelist = findPreference<WifiSsidPreference>(Constants.PREF_WIFI_SSID_WHITELIST)
+            mRunInFlightMode = findPreference<CheckBoxPreference>(Constants.PREF_RUN_IN_FLIGHT_MODE)
 
-            val languagePref = findPreference(Languages.PREFERENCE_LANGUAGE) as ListPreference?
-            val categoryBehaviour = findPreference("category_behaviour") as PreferenceScreen?
-            categoryBehaviour?.removePreference(languagePref)
+            val languagePref = findPreference<ListPreference>(Languages.PREFERENCE_LANGUAGE)
+            val categoryBehaviour = findPreference<PreferenceScreen>("category_behaviour")
+            categoryBehaviour?.removePreference(languagePref!!)
 
-            mDeviceName = findPreference("deviceName") as EditTextPreference?
-            mListenAddresses = findPreference("listenAddresses") as EditTextPreference?
-            mMaxRecvKbps = findPreference("maxRecvKbps") as EditTextPreference?
-            mMaxSendKbps = findPreference("maxSendKbps") as EditTextPreference?
-            mNatEnabled = findPreference("natEnabled") as CheckBoxPreference?
-            mLocalAnnounceEnabled = findPreference("localAnnounceEnabled") as CheckBoxPreference?
-            mGlobalAnnounceEnabled = findPreference("globalAnnounceEnabled") as CheckBoxPreference?
-            mRelaysEnabled = findPreference("relaysEnabled") as CheckBoxPreference?
-            mGlobalAnnounceServers = findPreference("globalAnnounceServers") as EditTextPreference?
-            mAddress = findPreference("address") as EditTextPreference?
-            mUrAccepted = findPreference("urAccepted") as CheckBoxPreference?
+            mDeviceName = findPreference<EditTextPreference>("deviceName")
+            mListenAddresses = findPreference<EditTextPreference>("listenAddresses")
+            mMaxRecvKbps = findPreference<EditTextPreference>("maxRecvKbps")
+            mMaxSendKbps = findPreference<EditTextPreference>("maxSendKbps")
+            mNatEnabled = findPreference<CheckBoxPreference>("natEnabled")
+            mLocalAnnounceEnabled = findPreference<CheckBoxPreference>("localAnnounceEnabled")
+            mGlobalAnnounceEnabled = findPreference<CheckBoxPreference>("globalAnnounceEnabled")
+            mRelaysEnabled = findPreference<CheckBoxPreference>("relaysEnabled")
+            mGlobalAnnounceServers = findPreference<EditTextPreference>("globalAnnounceServers")
+            mAddress = findPreference<EditTextPreference>("address")
+            mUrAccepted = findPreference<CheckBoxPreference>("urAccepted")
 
             mCategoryBackup = findPreference("category_backup")
-            val exportConfig = findPreference("export_config")
-            val importConfig = findPreference("import_config")
+            val exportConfig = findPreference<Preference>("export_config")
+            val importConfig = findPreference<Preference>("import_config")
 
-            val undoIgnoredDevicesFolders = findPreference(KEY_UNDO_IGNORED_DEVICES_FOLDERS)
-            val debugFacilitiesEnabled = findPreference(Constants.PREF_DEBUG_FACILITIES_ENABLED)
-            val environmentVariables = findPreference("environment_variables")
-            val stResetDatabase = findPreference("st_reset_database")
-            val stResetDeltas = findPreference("st_reset_deltas")
+            val undoIgnoredDevicesFolders = findPreference<Preference>(KEY_UNDO_IGNORED_DEVICES_FOLDERS)
+            val debugFacilitiesEnabled = findPreference<SttracePreference>(Constants.PREF_DEBUG_FACILITIES_ENABLED)
+            val environmentVariables = findPreference<EditTextPreference>("environment_variables")
+            val stResetDatabase = findPreference<Preference>("st_reset_database")
+            val stResetDeltas = findPreference<Preference>("st_reset_deltas")
 
-            mUseRoot = findPreference(Constants.PREF_USE_ROOT) as CheckBoxPreference?
-            mUseWakelock = findPreference(Constants.PREF_USE_WAKE_LOCK) as CheckBoxPreference?
-            mUseTor = findPreference(Constants.PREF_USE_TOR) as CheckBoxPreference?
-            mSocksProxyAddress =
-                findPreference(Constants.PREF_SOCKS_PROXY_ADDRESS) as EditTextPreference?
-            mHttpProxyAddress =
-                findPreference(Constants.PREF_HTTP_PROXY_ADDRESS) as EditTextPreference?
+            mUseRoot = findPreference<CheckBoxPreference>(Constants.PREF_USE_ROOT)
+            mUseWakelock = findPreference<CheckBoxPreference>(Constants.PREF_USE_WAKE_LOCK)
+            mUseTor = findPreference<CheckBoxPreference>(Constants.PREF_USE_TOR)
+            mSocksProxyAddress = findPreference<EditTextPreference>(Constants.PREF_SOCKS_PROXY_ADDRESS)
+            mHttpProxyAddress = findPreference<EditTextPreference>(Constants.PREF_HTTP_PROXY_ADDRESS)
 
             mSyncthingVersion = findPreference("syncthing_version")
-            val appVersion = screen.findPreference("app_version")
+            val appVersion = screen.findPreference<Preference>("app_version")
 
             mRunOnMeteredWifi!!.isEnabled = mRunOnWifi!!.isChecked
             mWifiSsidWhitelist!!.isEnabled = mRunOnWifi!!.isChecked
@@ -230,7 +233,7 @@ class SettingsActivity : SyncthingActivity() {
                     o
                 )
             }
-            mCategoryRunConditions = findPreference("category_run_conditions") as PreferenceGroup?
+            mCategoryRunConditions = findPreference<PreferenceGroup>("category_run_conditions")
             setPreferenceCategoryChangeListener(
                 mCategoryRunConditions
             ) { preference: Preference?, o: Any? ->
@@ -246,14 +249,14 @@ class SettingsActivity : SyncthingActivity() {
                 }
             }
 
-            exportConfig.onPreferenceClickListener = this
-            importConfig.onPreferenceClickListener = this
+            exportConfig?.onPreferenceClickListener = this
+            importConfig?.onPreferenceClickListener = this
 
-            undoIgnoredDevicesFolders.onPreferenceClickListener = this
-            debugFacilitiesEnabled.onPreferenceChangeListener = this
-            environmentVariables.onPreferenceChangeListener = this
-            stResetDatabase.onPreferenceClickListener = this
-            stResetDeltas.onPreferenceClickListener = this
+            undoIgnoredDevicesFolders?.onPreferenceClickListener = this
+            debugFacilitiesEnabled?.onPreferenceChangeListener = this
+            environmentVariables?.onPreferenceChangeListener = this
+            stResetDatabase?.onPreferenceClickListener = this
+            stResetDeltas?.onPreferenceClickListener = this
 
             /* Experimental options */
             mUseRoot!!.onPreferenceClickListener = this
@@ -266,36 +269,37 @@ class SettingsActivity : SyncthingActivity() {
             mHttpProxyAddress!!.onPreferenceChangeListener = this
 
             /* Initialize summaries */
-            screen.findPreference(Constants.PREF_POWER_SOURCE).summary = mPowerSource!!.getEntry()
+            screen.findPreference<ListPreference>(Constants.PREF_POWER_SOURCE)?.summary = mPowerSource!!.getEntry()
             val wifiSsidSummary = TextUtils.join(
                 ", ", mPreferences!!.getStringSet(
                     Constants.PREF_WIFI_SSID_WHITELIST,
                     java.util.HashSet()
                 )!!
             )
-            screen.findPreference(Constants.PREF_WIFI_SSID_WHITELIST).summary = if (TextUtils.isEmpty(wifiSsidSummary)) getString(R.string.run_on_all_wifi_networks) else getString(
+            screen.findPreference<WifiSsidPreference>(Constants.PREF_WIFI_SSID_WHITELIST)?.summary =
+                if (TextUtils.isEmpty(wifiSsidSummary)) getString(R.string.run_on_all_wifi_networks) else getString(
                 R.string.run_on_whitelisted_wifi_networks,
                 wifiSsidSummary
             )
             handleSocksProxyPreferenceChange(
-                screen.findPreference(Constants.PREF_SOCKS_PROXY_ADDRESS), mPreferences!!.getString(
+                screen.findPreference<EditTextPreference>(Constants.PREF_SOCKS_PROXY_ADDRESS)!!, mPreferences!!.getString(
                     Constants.PREF_SOCKS_PROXY_ADDRESS,
                     ""
                 )!!
             )
             handleHttpProxyPreferenceChange(
-                screen.findPreference(Constants.PREF_HTTP_PROXY_ADDRESS), mPreferences!!.getString(
+                screen.findPreference<EditTextPreference>(Constants.PREF_HTTP_PROXY_ADDRESS)!!, mPreferences!!.getString(
                     Constants.PREF_HTTP_PROXY_ADDRESS,
                     ""
                 )!!
             )
 
-            val themePreference = findPreference(Constants.PREF_APP_THEME) as ListPreference
-            themePreference.onPreferenceChangeListener = this
+            val themePreference = findPreference(Constants.PREF_APP_THEME) as ListPreference?
+            themePreference?.onPreferenceChangeListener = this
 
             try {
-                appVersion.summary = activity.packageManager
-                    .getPackageInfo(activity.packageName, 0).versionName
+                appVersion?.summary = activity!!.packageManager
+                    ?.getPackageInfo(activity!!.packageName, 0)?.versionName
             } catch (_: PackageManager.NameNotFoundException) {
                 Log.d(TAG, "Failed to get app version name")
             }
@@ -310,12 +314,12 @@ class SettingsActivity : SyncthingActivity() {
             if (openSubPrefScreen != null && !TextUtils.isEmpty(openSubPrefScreen)) {
                 Log.v(TAG, "Transitioning to pref screen $openSubPrefScreen")
                 val categoryRunConditions = findPreference(openSubPrefScreen) as PreferenceScreen?
-                val listAdapter = prefScreen.getRootAdapter()
-                val itemsCount = listAdapter.count
+                // TODO - test this is correct
+                val itemsCount = prefScreen.preferenceCount
                 for (itemNumber in 0..<itemsCount) {
-                    if (listAdapter.getItem(itemNumber) == categoryRunConditions) {
+                    if (prefScreen[itemNumber] == categoryRunConditions) {
                         // Simulates click on the sub-preference
-                        prefScreen.onItemClick(null, null, itemNumber, 0)
+                        prefScreen[itemNumber].performClick()
                         break
                     }
                 }
@@ -574,10 +578,11 @@ class SettingsActivity : SyncthingActivity() {
                     }
                 }
 
-                Constants.PREF_APP_THEME ->                     // Recreate activities with the correct colors
-                    TaskStackBuilder.create(activity)
+                // Recreate activities with the correct colors
+                Constants.PREF_APP_THEME ->
+                    TaskStackBuilder.create(context!!)
                         .addNextIntent(Intent(activity, MainActivity::class.java))
-                        .addNextIntent(activity.intent)
+                        .addNextIntent(activity!!.intent)
                         .startActivities()
             }
 
@@ -593,14 +598,14 @@ class SettingsActivity : SyncthingActivity() {
                         mUseRoot!!.setChecked(false)
                         TestRootTask(this).execute()
                     } else {
-                        Thread { fixAppDataPermissions(activity) }.start()
+                        Thread { fixAppDataPermissions(context!!) }.start()
                         mPendingConfig = true
                     }
                     return true
                 }
 
                 KEY_EXPORT_CONFIG -> {
-                    getAlertDialogBuilder(activity)
+                    getAlertDialogBuilder(context!!)
                         .setMessage(R.string.dialog_confirm_export)
                         .setPositiveButton(
                             android.R.string.yes
@@ -620,7 +625,7 @@ class SettingsActivity : SyncthingActivity() {
                 }
 
                 KEY_IMPORT_CONFIG -> {
-                    getAlertDialogBuilder(activity)
+                    getAlertDialogBuilder(context!!)
                         .setMessage(R.string.dialog_confirm_import)
                         .setPositiveButton(
                             android.R.string.yes
@@ -649,7 +654,7 @@ class SettingsActivity : SyncthingActivity() {
                 }
 
                 KEY_UNDO_IGNORED_DEVICES_FOLDERS -> {
-                    getAlertDialogBuilder(activity)
+                    getAlertDialogBuilder(context!!)
                         .setMessage(R.string.undo_ignored_devices_folders_question)
                         .setPositiveButton(
                             android.R.string.yes
@@ -679,13 +684,13 @@ class SettingsActivity : SyncthingActivity() {
                     intent = Intent(activity, SyncthingService::class.java)
                         .setAction(SyncthingService.ACTION_RESET_DATABASE)
 
-                    getAlertDialogBuilder(activity)
+                    getAlertDialogBuilder(context!!)
                         .setTitle(R.string.st_reset_database_title)
                         .setMessage(R.string.st_reset_database_question)
                         .setPositiveButton(
                             android.R.string.ok
                         ) { _: DialogInterface?, _: Int ->
-                            activity.startService(intent)
+                            activity?.startService(intent)
                             Toast.makeText(
                                 activity,
                                 R.string.st_reset_database_done,
@@ -703,13 +708,13 @@ class SettingsActivity : SyncthingActivity() {
                     intent = Intent(activity, SyncthingService::class.java)
                         .setAction(SyncthingService.ACTION_RESET_DELTAS)
 
-                    getAlertDialogBuilder(activity)
+                    getAlertDialogBuilder(context!!)
                         .setTitle(R.string.st_reset_deltas_title)
                         .setMessage(R.string.st_reset_deltas_question)
                         .setPositiveButton(
                             android.R.string.ok
                         ) { _: DialogInterface?, _: Int ->
-                            activity.startService(intent)
+                            activity?.startService(intent)
                             Toast.makeText(
                                 activity,
                                 R.string.st_reset_deltas_done,

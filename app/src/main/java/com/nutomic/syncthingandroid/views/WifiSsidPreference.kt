@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.wifi.WifiManager
 import android.os.Bundle
-import android.preference.MultiSelectListPreference
+import androidx.preference.MultiSelectListPreference
 import android.util.AttributeSet
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
@@ -45,7 +45,7 @@ class WifiSsidPreference @JvmOverloads constructor(context: Context?, attrs: Att
      * by the user in the WiFi manager. This change will be persisted only if the user changes
      * any other setting
      */
-    override fun showDialog(state: Bundle?) {
+    fun showDialog(state: Bundle?) {
         val context = getContext()
 
         var selected: MutableSet<String?> =
