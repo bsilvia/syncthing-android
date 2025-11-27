@@ -1,6 +1,5 @@
 package com.nutomic.syncthingandroid.activities
 
-import android.app.Activity
 import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
@@ -16,14 +15,12 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.CompoundButton
 import android.widget.Toast
-import android.window.OnBackInvokedDispatcher
 import androidx.core.content.ContextCompat
 import com.google.gson.Gson
 import com.nutomic.syncthingandroid.R
 import com.nutomic.syncthingandroid.databinding.ActivityDeviceBinding
 import com.nutomic.syncthingandroid.model.Connections
 import com.nutomic.syncthingandroid.model.Device
-import com.nutomic.syncthingandroid.service.RestApi.OnResultListener1
 import com.nutomic.syncthingandroid.service.SyncthingService
 import com.nutomic.syncthingandroid.service.SyncthingService.OnServiceStateChangeListener
 import com.nutomic.syncthingandroid.util.Compression
@@ -126,7 +123,7 @@ class DeviceActivity : SyncthingActivity(), View.OnClickListener {
                 }
             }
         }
-        registerOnServiceConnectedListener(OnServiceConnectedListener { this.onServiceConnected() })
+        registerOnServiceConnectedListener { this.onServiceConnected() }
         setTitle(if (mIsCreateMode) R.string.add_device else R.string.edit_device)
 
         binding!!.qrButton.setOnClickListener(this)
@@ -134,7 +131,7 @@ class DeviceActivity : SyncthingActivity(), View.OnClickListener {
 
         if (savedInstanceState != null) {
             if (mDevice == null) {
-                mDevice = Gson().fromJson<Device?>(
+                mDevice = Gson().fromJson(
                     savedInstanceState.getString("device"),
                     Device::class.java
                 )
@@ -284,11 +281,11 @@ class DeviceActivity : SyncthingActivity(), View.OnClickListener {
             }
         }
 
-        api?.getConnections(OnResultListener1 { connections: Connections? ->
+        api?.getConnections { connections: Connections? ->
             this.onReceiveConnections(
                 connections!!
             )
-        })
+        }
 
         updateViewsAndSetListeners()
     }
@@ -337,14 +334,14 @@ class DeviceActivity : SyncthingActivity(), View.OnClickListener {
                     return true
                 }
                 api?.addDevice(
-                    mDevice!!,
-                    OnResultListener1 { error: String? ->
-                        Toast.makeText(
-                            this,
-                            error,
-                            Toast.LENGTH_LONG
-                        ).show()
-                    })
+                    mDevice!!
+                ) { error: String? ->
+                    Toast.makeText(
+                        this,
+                        error,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
                 finish()
                 return true
             }

@@ -1,7 +1,5 @@
 package com.nutomic.syncthingandroid.model
 
-import android.text.TextUtils
-
 class RemoteIgnoredDevice {
     var time: String = ""
     var deviceID: String = ""

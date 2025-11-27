@@ -3,15 +3,8 @@ package com.nutomic.syncthingandroid.util
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
-import android.text.TextUtils
-import com.nutomic.syncthingandroid.R
-import com.nutomic.syncthingandroid.SyncthingApp
-import java.util.Arrays
-import java.util.Collections
 import java.util.Locale
-import java.util.TreeMap
 import javax.inject.Inject
 
 /**
@@ -77,9 +70,9 @@ class Languages(context: Context) {
     val allNames: Array<String?>
         /**
          * @return an array of the names of all the supported languages, sorted to
-         * match what is returned by [Languages.getSupportedLocales].
+         * match what is returned by [Languages.supportedLocales].
          */
-        get() = arrayOf<String?>() //mAvailableLanguages.values.toTypedArray<String?>()
+        get() = arrayOf() //mAvailableLanguages.values.toTypedArray<String?>()
 
     val supportedLocales: Array<String?>
         /**
@@ -89,7 +82,7 @@ class Languages(context: Context) {
 //            val keys: MutableSet<String?> =
 //                mAvailableLanguages.keys
 //            return keys.toTypedArray<String?>()
-            return arrayOf<String?>()
+            return arrayOf()
         }
 
     init {

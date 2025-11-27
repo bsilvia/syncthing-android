@@ -222,7 +222,7 @@ class NotificationHandler(context: Context) {
         if (notificationId == 0) {
             return
         }
-        Log.v(TAG, "Cancelling notification with id " + notificationId)
+        Log.v(TAG, "Cancelling notification with id $notificationId")
         mNotificationManager.cancel(notificationId)
     }
 

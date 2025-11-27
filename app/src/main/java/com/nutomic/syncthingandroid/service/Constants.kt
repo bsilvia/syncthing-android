@@ -36,7 +36,7 @@ object Constants {
     const val PREF_UPGRADED_TO_API_LEVEL_30: String = "upgraded_to_api_level_30"
 
     /**
-     * Available options cache for preference [app_settings.debug_facilities_enabled]
+     * Available options cache for preference [PREF_DEBUG_FACILITIES_ENABLED]
      * Read via REST API call in [RestApi.updateDebugFacilitiesCache] after first successful binary startup.
      */
     const val PREF_DEBUG_FACILITIES_AVAILABLE: String = "debug_facilities_available"

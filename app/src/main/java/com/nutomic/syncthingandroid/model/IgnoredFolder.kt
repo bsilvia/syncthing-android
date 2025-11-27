@@ -1,7 +1,5 @@
 package com.nutomic.syncthingandroid.model
 
-import android.text.TextUtils
-
 class IgnoredFolder {
     var time: String = ""
     var id: String = ""

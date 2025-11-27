@@ -179,30 +179,30 @@ class SettingsActivity : SyncthingActivity() {
 
             addPreferencesFromResource(R.xml.app_settings)
             val screen = preferenceScreen
-            mRunConditions = findPreference<CheckBoxPreference>(Constants.PREF_RUN_CONDITIONS)
-            mStartServiceOnBoot = findPreference<CheckBoxPreference>(Constants.PREF_START_SERVICE_ON_BOOT)
-            mPowerSource = findPreference<ListPreference>(Constants.PREF_POWER_SOURCE)
-            mRunOnMobileData = findPreference<CheckBoxPreference>(Constants.PREF_RUN_ON_WIFI)
-            mRunOnWifi = findPreference<CheckBoxPreference>(Constants.PREF_RUN_ON_WIFI)
-            mRunOnMeteredWifi = findPreference<CheckBoxPreference>(Constants.PREF_RUN_ON_METERED_WIFI)
-            mWifiSsidWhitelist = findPreference<WifiSsidPreference>(Constants.PREF_WIFI_SSID_WHITELIST)
-            mRunInFlightMode = findPreference<CheckBoxPreference>(Constants.PREF_RUN_IN_FLIGHT_MODE)
+            mRunConditions = findPreference(Constants.PREF_RUN_CONDITIONS)
+            mStartServiceOnBoot = findPreference(Constants.PREF_START_SERVICE_ON_BOOT)
+            mPowerSource = findPreference(Constants.PREF_POWER_SOURCE)
+            mRunOnMobileData = findPreference(Constants.PREF_RUN_ON_WIFI)
+            mRunOnWifi = findPreference(Constants.PREF_RUN_ON_WIFI)
+            mRunOnMeteredWifi = findPreference(Constants.PREF_RUN_ON_METERED_WIFI)
+            mWifiSsidWhitelist = findPreference(Constants.PREF_WIFI_SSID_WHITELIST)
+            mRunInFlightMode = findPreference(Constants.PREF_RUN_IN_FLIGHT_MODE)
 
             val languagePref = findPreference<ListPreference>(Languages.PREFERENCE_LANGUAGE)
             val categoryBehaviour = findPreference<PreferenceScreen>("category_behaviour")
             categoryBehaviour?.removePreference(languagePref!!)
 
-            mDeviceName = findPreference<EditTextPreference>("deviceName")
-            mListenAddresses = findPreference<EditTextPreference>("listenAddresses")
-            mMaxRecvKbps = findPreference<EditTextPreference>("maxRecvKbps")
-            mMaxSendKbps = findPreference<EditTextPreference>("maxSendKbps")
-            mNatEnabled = findPreference<CheckBoxPreference>("natEnabled")
-            mLocalAnnounceEnabled = findPreference<CheckBoxPreference>("localAnnounceEnabled")
-            mGlobalAnnounceEnabled = findPreference<CheckBoxPreference>("globalAnnounceEnabled")
-            mRelaysEnabled = findPreference<CheckBoxPreference>("relaysEnabled")
-            mGlobalAnnounceServers = findPreference<EditTextPreference>("globalAnnounceServers")
-            mAddress = findPreference<EditTextPreference>("address")
-            mUrAccepted = findPreference<CheckBoxPreference>("urAccepted")
+            mDeviceName = findPreference("deviceName")
+            mListenAddresses = findPreference("listenAddresses")
+            mMaxRecvKbps = findPreference("maxRecvKbps")
+            mMaxSendKbps = findPreference("maxSendKbps")
+            mNatEnabled = findPreference("natEnabled")
+            mLocalAnnounceEnabled = findPreference("localAnnounceEnabled")
+            mGlobalAnnounceEnabled = findPreference("globalAnnounceEnabled")
+            mRelaysEnabled = findPreference("relaysEnabled")
+            mGlobalAnnounceServers = findPreference("globalAnnounceServers")
+            mAddress = findPreference("address")
+            mUrAccepted = findPreference("urAccepted")
 
             mCategoryBackup = findPreference("category_backup")
             val exportConfig = findPreference<Preference>("export_config")
@@ -214,11 +214,11 @@ class SettingsActivity : SyncthingActivity() {
             val stResetDatabase = findPreference<Preference>("st_reset_database")
             val stResetDeltas = findPreference<Preference>("st_reset_deltas")
 
-            mUseRoot = findPreference<CheckBoxPreference>(Constants.PREF_USE_ROOT)
-            mUseWakelock = findPreference<CheckBoxPreference>(Constants.PREF_USE_WAKE_LOCK)
-            mUseTor = findPreference<CheckBoxPreference>(Constants.PREF_USE_TOR)
-            mSocksProxyAddress = findPreference<EditTextPreference>(Constants.PREF_SOCKS_PROXY_ADDRESS)
-            mHttpProxyAddress = findPreference<EditTextPreference>(Constants.PREF_HTTP_PROXY_ADDRESS)
+            mUseRoot = findPreference(Constants.PREF_USE_ROOT)
+            mUseWakelock = findPreference(Constants.PREF_USE_WAKE_LOCK)
+            mUseTor = findPreference(Constants.PREF_USE_TOR)
+            mSocksProxyAddress = findPreference(Constants.PREF_SOCKS_PROXY_ADDRESS)
+            mHttpProxyAddress = findPreference(Constants.PREF_HTTP_PROXY_ADDRESS)
 
             mSyncthingVersion = findPreference("syncthing_version")
             val appVersion = screen.findPreference<Preference>("app_version")
@@ -235,7 +235,7 @@ class SettingsActivity : SyncthingActivity() {
                     o
                 )
             }
-            mCategoryRunConditions = findPreference<PreferenceGroup>("category_run_conditions")
+            mCategoryRunConditions = findPreference("category_run_conditions")
             setPreferenceCategoryChangeListener(
                 mCategoryRunConditions
             ) { preference: Preference?, o: Any? ->

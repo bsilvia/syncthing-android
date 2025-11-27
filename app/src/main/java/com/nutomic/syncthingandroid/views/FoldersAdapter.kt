@@ -42,7 +42,7 @@ class FoldersAdapter(private val mContext: Context) : ArrayAdapter<Folder?>(
                 false
             )
         else
-            DataBindingUtil.bind<ItemFolderListBinding?>(convertView)
+            DataBindingUtil.bind(convertView)
 
         val folder = getItem(position)
         binding!!.label.text = if (TextUtils.isEmpty(folder!!.label)) folder.id else folder.label

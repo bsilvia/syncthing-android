@@ -38,24 +38,18 @@ object FileUtils {
         }
 
         // Determine volumeId, e.g. "home", "documents"
-        val volumeId = getVolumeIdFromTreeUri(treeUri)
-        if (volumeId == null) {
-            return null
-        }
+        val volumeId = getVolumeIdFromTreeUri(treeUri) ?: return null
 
         // Handle Uri referring to internal or external storage.
-        var volumePath = getVolumePath(volumeId, context)
-        if (volumePath == null) {
-            return File.separator
-        }
+        var volumePath = getVolumePath(volumeId, context) ?: return File.separator
         if (volumePath.endsWith(File.separator)) {
-            volumePath = volumePath.substring(0, volumePath.length - 1)
+            volumePath = volumePath.dropLast(1)
         }
         var documentPath = getDocumentPathFromTreeUri(treeUri)
         if (documentPath.endsWith(File.separator)) {
-            documentPath = documentPath.substring(0, documentPath.length - 1)
+            documentPath = documentPath.dropLast(1)
         }
-        if (documentPath.length > 0) {
+        if (documentPath.isNotEmpty()) {
             if (documentPath.startsWith(File.separator)) {
                 return volumePath + documentPath
             } else {
@@ -112,7 +106,7 @@ object FileUtils {
         } catch (e: Exception) {
             Log.w(TAG, "getVolumePath exception", e)
         }
-        Log.e(TAG, "getVolumePath failed for volumeId='" + volumeId + "'")
+        Log.e(TAG, "getVolumePath failed for volumeId='$volumeId'")
         return null
     }
 
@@ -146,19 +140,19 @@ object FileUtils {
              * e.g. "/storage/abcd-efgh/Android/com.nutomic.syncthinandroid/files"
              */
             val externalFilesDir = ArrayList<File?>()
-            externalFilesDir.addAll(Arrays.asList<File?>(*context.getExternalFilesDirs(null)))
+            externalFilesDir.addAll(Arrays.asList(*context.getExternalFilesDirs(null)))
             externalFilesDir.remove(context.getExternalFilesDir(null))
-            if (externalFilesDir.size == 0) {
+            if (externalFilesDir.isEmpty()) {
                 Log.w(TAG, "Could not determine app's private files directory on external storage.")
                 return null
             }
-            val absPath = externalFilesDir.get(0)!!.absolutePath
+            val absPath = externalFilesDir[0]!!.absolutePath
             val segments =
                 absPath.split("/".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
             if (segments.size < 2) {
                 Log.w(
                     TAG,
-                    "Could not extract volumeId from app's private files path '" + absPath + "'"
+                    "Could not extract volumeId from app's private files path '$absPath'"
                 )
                 return null
             }

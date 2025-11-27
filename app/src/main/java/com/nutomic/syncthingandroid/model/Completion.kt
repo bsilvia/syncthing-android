@@ -8,7 +8,7 @@ import kotlin.math.floor
  * This class caches remote folder and device synchronization
  * completion indicators defined in [CompletionInfo]
  * according to syncthing's REST "/completion" JSON result schema.
- * Completion model of syncthing's web UI is completion[deviceId][folderId]
+ * Completion model of syncthing's web UI is completion[deviceId][ folderId ]
  */
 class Completion {
     var deviceFolderMap: HashMap<String?, HashMap<String?, CompletionInfo?>> =
@@ -88,7 +88,7 @@ class Completion {
             for (device in newDevices) {
                 if (folder?.getDevice(device.deviceID) != null) {
                     // folder is shared with device.
-                    folderMap = deviceFolderMap.get(device.deviceID)
+                    folderMap = deviceFolderMap[device.deviceID]
                     checkNotNull(folderMap)
                     if (!folderMap.containsKey(folder.id)) {
                         Log.v(
@@ -109,7 +109,7 @@ class Completion {
     fun getDeviceCompletion(deviceId: String?): Int {
         var folderCount = 0
         var sumCompletion = 0.0
-        val folderMap = deviceFolderMap.get(deviceId)
+        val folderMap = deviceFolderMap[deviceId]
         if (folderMap != null) {
             for (folder in folderMap.entries) {
                 sumCompletion += folder.value!!.completion
@@ -135,7 +135,7 @@ class Completion {
             deviceFolderMap[deviceId] = HashMap()
         }
         // Add folder or update existing folder entry.
-        Objects.requireNonNull<HashMap<String?, CompletionInfo?>>(deviceFolderMap.get(deviceId))[folderId] =
+        Objects.requireNonNull<HashMap<String?, CompletionInfo?>>(deviceFolderMap[deviceId])[folderId] =
             completionInfo
     }
 

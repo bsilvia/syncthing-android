@@ -9,7 +9,7 @@ import androidx.core.content.ContextCompat
 object ReceiverManager {
     private const val TAG = "ReceiverManager"
 
-    private val mReceivers: MutableList<BroadcastReceiver?> = ArrayList<BroadcastReceiver?>()
+    private val mReceivers: MutableList<BroadcastReceiver?> = ArrayList()
 
     @Synchronized
     fun registerReceiver(
@@ -24,7 +24,7 @@ object ReceiverManager {
             intentFilter,
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
-        Log.v(TAG, "Registered receiver: " + receiver + " with filter: " + intentFilter)
+        Log.v(TAG, "Registered receiver: $receiver with filter: $intentFilter")
     }
 
     @Synchronized
@@ -44,13 +44,13 @@ object ReceiverManager {
             if (isReceiverRegistered(receiver)) {
                 try {
                     context.unregisterReceiver(receiver)
-                    Log.v(TAG, "Unregistered receiver: " + receiver)
+                    Log.v(TAG, "Unregistered receiver: $receiver")
                 } catch (e: IllegalArgumentException) {
                     // We have to catch the race condition a registration is still pending in android
                     // according to https://stackoverflow.com/a/3568906
                     Log.w(
                         TAG,
-                        "unregisterReceiver(" + receiver + ") threw IllegalArgumentException"
+                        "unregisterReceiver($receiver) threw IllegalArgumentException"
                     )
                 }
                 iter.remove()

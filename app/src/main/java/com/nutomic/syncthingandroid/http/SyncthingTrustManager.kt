@@ -3,7 +3,6 @@ package com.nutomic.syncthingandroid.http
 import android.util.Log
 import java.io.File
 import java.io.FileInputStream
-import java.io.IOException
 import java.security.KeyStore
 import java.security.cert.CertificateException
 import java.security.cert.CertificateFactory

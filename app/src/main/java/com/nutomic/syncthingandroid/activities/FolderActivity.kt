@@ -22,7 +22,6 @@ import android.widget.CompoundButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.core.view.MarginLayoutParamsCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -642,10 +641,14 @@ class FolderActivity : SyncthingActivity(), OnServiceConnectedListener,
         ).toInt()
         val params = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, height)
         val dividerInset = getResources().getDimensionPixelOffset(R.dimen.material_divider_inset)
-        val contentInset =
-            getResources().getDimensionPixelOffset(R.dimen.abc_action_bar_content_inset_material)
-        MarginLayoutParamsCompat.setMarginStart(params, dividerInset)
-        MarginLayoutParamsCompat.setMarginEnd(params, contentInset)
+        val contentInset = getResources().getDimensionPixelOffset(R.dimen.abc_action_bar_content_inset_material)
+
+        val view = findViewById<View>(R.id.folderTypeContainer)
+        val layoutParams = view.layoutParams as ViewGroup.MarginLayoutParams
+        layoutParams.marginStart = dividerInset
+        layoutParams.marginEnd = contentInset
+        view.layoutParams = params
+
         val emptyView = TextView(binding!!.devicesContainer.context)
         emptyView.setGravity(Gravity.CENTER_VERTICAL)
         emptyView.setText(R.string.devices_list_empty)
@@ -867,10 +870,10 @@ class FolderActivity : SyncthingActivity(), OnServiceConnectedListener,
         private const val IS_SHOWING_DELETE_DIALOG = "DELETE_FOLDER_DIALOG_STATE"
         private const val IS_SHOW_DISCARD_DIALOG = "DISCARD_FOLDER_DIALOG_STATE"
 
-        private const val FILE_VERSIONING_DIALOG_REQUEST = 3454
-        private const val PULL_ORDER_DIALOG_REQUEST = 3455
-        private const val FOLDER_TYPE_DIALOG_REQUEST = 3456
-        private const val CHOOSE_FOLDER_REQUEST = 3459
+//        private const val FILE_VERSIONING_DIALOG_REQUEST = 3454
+//        private const val PULL_ORDER_DIALOG_REQUEST = 3455
+//        private const val FOLDER_TYPE_DIALOG_REQUEST = 3456
+//        private const val CHOOSE_FOLDER_REQUEST = 3459
 
         private const val FOLDER_MARKER_NAME = ".stfolder"
         private const val IGNORE_FILE_NAME = ".stignore"

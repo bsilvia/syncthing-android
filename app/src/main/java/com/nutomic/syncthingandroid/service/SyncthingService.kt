@@ -344,7 +344,7 @@ class SyncthingService : Service() {
     }
 
     /**
-     * Callback on [StartupTask.onPostExecute].
+     * Callback on [StartupTask.run].
      */
     private fun onStartupTaskCompleteListener() {
         if (this.api == null) {
@@ -523,7 +523,7 @@ class SyncthingService : Service() {
 
     /**
      * Force re-evaluating run conditions immediately e.g. after
-     * preferences were modified by [SettingsActivity].
+     * preferences were modified by [com.nutomic.syncthingandroid.activities.SettingsActivity].
      */
     fun evaluateRunConditions() {
         if (mRunConditionMonitor == null) {
