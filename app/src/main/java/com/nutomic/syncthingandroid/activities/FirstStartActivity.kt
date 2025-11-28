@@ -162,15 +162,11 @@ class FirstStartActivity : Activity() {
         )
 
     private val isNotificationPermissionGranted: Boolean
-        get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        get() =
             ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED
-        } else {
-            // Prior to Android 13 notifications do not require runtime permission
-            true
-        }
 
 
     private fun upgradedToApiLevel30(): Boolean {
@@ -339,27 +335,17 @@ class FirstStartActivity : Activity() {
     }
 
     private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
-            }
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
         }
     }
 
     private fun requestStoragePermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            requestAllFilesAccessPermission()
-        } else {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf<String?>(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                PermissionRequestType.STORAGE.ordinal
-            )
-        }
+        requestAllFilesAccessPermission()
     }
 
     private fun requestAllFilesAccessPermission() {
@@ -391,13 +377,11 @@ class FirstStartActivity : Activity() {
                     return
                 }
                 Log.i(TAG, "User granted foreground location permission")
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    ActivityCompat.requestPermissions(
-                        this,
-                        locationPermissions,
-                        PermissionRequestType.LOCATION_BACKGROUND.ordinal
-                    )
-                }
+                ActivityCompat.requestPermissions(
+                    this,
+                    locationPermissions,
+                    PermissionRequestType.LOCATION_BACKGROUND.ordinal
+                )
             }
 
             PermissionRequestType.LOCATION_BACKGROUND -> {
