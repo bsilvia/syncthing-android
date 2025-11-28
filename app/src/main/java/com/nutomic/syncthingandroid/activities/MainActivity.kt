@@ -22,16 +22,22 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.view.GravityCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.annimon.stream.function.Consumer
@@ -177,7 +183,7 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
 
     private lateinit var mSectionsPagerAdapter: FragmentStateAdapter
 
-    private inner class SectionsPagerAdapter(activity: androidx.fragment.app.FragmentActivity) :
+    private inner class SectionsPagerAdapter(activity: FragmentActivity) :
         FragmentStateAdapter(activity) {
         override fun getItemCount(): Int = 2
 
@@ -227,6 +233,7 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
                 else -> position.toString()
             }
         }.attach()
+
         if (savedInstanceState != null) {
             mViewPager!!.currentItem = savedInstanceState.getInt("currentTab")
             if (savedInstanceState.getBoolean(IS_SHOWING_RESTART_DIALOG)) {
@@ -264,7 +271,7 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
 
         onNewIntent(intent)
 
-        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (mDrawerLayout!!.isDrawerOpen(GravityCompat.START)) {
                     // Close drawer on back button press.
@@ -279,6 +286,24 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
                 }
             }
         })
+
+        // handle edge-to-edge layout by preventing the top and bottom bars from overlapping the app content
+        ViewCompat.setOnApplyWindowInsetsListener(mDrawerLayout!!) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+
+            v.updateLayoutParams<ViewGroup.MarginLayoutParams>(
+                block = {
+                    leftMargin = insets.left
+                    topMargin = insets.top
+                    rightMargin = insets.right
+                    bottomMargin = insets.bottom
+                }
+            )
+
+            // Return CONSUMED if you don't want the window insets to keep passing
+            // down to descendant views.
+            WindowInsetsCompat.CONSUMED
+        }
     }
 
     public override fun onResume() {
