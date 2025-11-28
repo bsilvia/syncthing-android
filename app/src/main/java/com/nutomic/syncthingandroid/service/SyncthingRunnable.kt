@@ -139,8 +139,16 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
             )
         else
             null
+
         try {
-            if (wakeLock != null) {
+            if (wakeLock == null) {
+                Log.i(TAG, "Running syncthing without a wakeLock")
+                increaseInotifyWatches()
+                val (resultStdOut, proc) = runSyncthingCore(returnStdOut)
+                capturedStdOut = resultStdOut
+                process = proc
+            } else {
+                Log.i(TAG, "Acquiring a wakeLock")
                 wakeLock.acquire()
                 try {
                     increaseInotifyWatches()
@@ -154,16 +162,13 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
                         Log.w(TAG, "Failed to release wakelock", e)
                     }
                 }
-            } else {
-                increaseInotifyWatches()
-                val (resultStdOut, proc) = runSyncthingCore(returnStdOut)
-                capturedStdOut = resultStdOut
-                process = proc
             }
         } catch (e: IOException) {
-            Log.e(TAG, "Failed to execute syncthing binary or read output", e)
+            Log.e(TAG, "Failed to execute syncthing binary or read output, IOException", e)
         } catch (e: InterruptedException) {
-            Log.e(TAG, "Failed to execute syncthing binary or read output", e)
+            Log.e(TAG, "Failed to execute syncthing binary or read output, InterruptedException", e)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to execute syncthing binary or read output, generic exception", e)
         } finally {
             process?.destroy()
         }
@@ -347,14 +352,15 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
             var br: BufferedReader? = null
             try {
                 br = BufferedReader(InputStreamReader(`is`, Charsets.UTF_8))
-                var line: String?
-                while ((br.readLine().also { line = it }) != null) {
-                    Log.println(priority, TAG_NATIVE, line!!)
+                br.useLines { lines ->
+                    lines.forEach { line ->
+                        Log.println(priority, TAG_NATIVE, line)
 
-                    try {
-                        mLogFile.appendText(line + "\n", Charsets.UTF_8)
-                    } catch (e: IOException) {
-                        Log.w(TAG, "log: Failed to append to log file", e)
+                        try {
+                            mLogFile.appendText(line + "\n", Charsets.UTF_8)
+                        } catch (e: IOException) {
+                            Log.w(TAG, "log: Failed to append to log file", e)
+                        }
                     }
                 }
             } catch (e: IOException) {
@@ -472,11 +478,11 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
             // suOut.flush has to be called to fix issue - #1005 Endless loader after enabling "Superuser mode"
             suOut.flush()
             return process
-        } else {
-            val pb = ProcessBuilder(*mCommand)
-            pb.environment().putAll(env)
-            return pb.start()
         }
+
+        val pb = ProcessBuilder(*mCommand)
+        pb.environment().putAll(env)
+        return pb.start()
     }
 
     /**
@@ -495,16 +501,23 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
         var lInfo: Thread? = null
         var lWarn: Thread? = null
         if (returnStdOut) {
+            Log.i(TAG, "Returning std out")
             var br: BufferedReader? = null
             try {
                 br = BufferedReader(InputStreamReader(process.inputStream, Charsets.UTF_8))
-                var line: String
-                while ((br.readLine().also { line = it }) != null) {
-                    Log.println(Log.INFO, TAG_NATIVE, line)
-                    capturedStdOut = capturedStdOut + line + "\n"
+                br.useLines { lines ->
+                    lines.forEach { line ->
+                        Log.i(TAG, "Read line from stream: $line")
+                        Log.println(Log.INFO, TAG_NATIVE, line)
+                        capturedStdOut = capturedStdOut + line + "\n"
+                    }
                 }
+
+                Log.i(TAG, "Done reading lines from the syncthing input stream")
             } catch (e: IOException) {
-                Log.w(TAG, "Failed to read Syncthing's command line output", e)
+                Log.w(TAG, "Failed to read Syncthing's command line output, IOException", e)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to read Syncthing's command line output, Generic Exception", e)
             } finally {
                 br?.close()
             }
@@ -526,10 +539,7 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
             }
 
             1 -> {
-                Log.w(
-                    TAG,
-                    "Another Syncthing instance is already running, requesting restart via SyncthingService intent"
-                )
+                Log.w(TAG, "Another Syncthing instance is already running, requesting restart via SyncthingService intent")
                 Log.i(TAG, "Restarting syncthing")
                 mContext.startService(
                     Intent(mContext, SyncthingService::class.java)
