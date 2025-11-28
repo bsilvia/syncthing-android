@@ -229,8 +229,8 @@ class FirstStartActivity : Activity() {
     }
 
     private fun setActiveBottomDot(currentPage: Int) {
-        val colorInactive = MaterialColors.getColor(this, R.attr.colorPrimary, Color.BLUE)
-        val colorActive = MaterialColors.getColor(this, R.attr.colorSecondary, Color.BLUE)
+        val colorInactive = MaterialColors.getColor(this, androidx.appcompat.R.attr.colorPrimary, Color.BLUE)
+        val colorActive = MaterialColors.getColor(this, com.google.android.material.R.attr.colorSecondary, Color.BLUE)
         for (mDot in mDots) {
             mDot!!.setTextColor(colorInactive)
         }
