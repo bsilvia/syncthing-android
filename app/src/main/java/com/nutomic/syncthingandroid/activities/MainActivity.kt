@@ -290,7 +290,6 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
         // handle edge-to-edge layout by preventing the top and bottom bars from overlapping the app content
         ViewCompat.setOnApplyWindowInsetsListener(mDrawerLayout!!) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
-
             v.updateLayoutParams<ViewGroup.MarginLayoutParams>(
                 block = {
                     leftMargin = insets.left
@@ -299,7 +298,6 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
                     bottomMargin = insets.bottom
                 }
             )
-
             // Return CONSUMED if you don't want the window insets to keep passing
             // down to descendant views.
             WindowInsetsCompat.CONSUMED

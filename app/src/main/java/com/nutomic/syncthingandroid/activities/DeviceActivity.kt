@@ -12,6 +12,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.CompoundButton
 import android.widget.Toast
@@ -29,6 +30,9 @@ import com.nutomic.syncthingandroid.util.Compression.Companion.fromValue
 import com.nutomic.syncthingandroid.util.TextWatcherAdapter
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import com.nutomic.syncthingandroid.util.Util.copyDeviceId
 import com.nutomic.syncthingandroid.util.Util.dismissDialogSafe
 import com.nutomic.syncthingandroid.util.Util.getAlertDialogBuilder
@@ -109,7 +113,8 @@ class DeviceActivity : SyncthingActivity(), View.OnClickListener {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDeviceBinding.inflate(layoutInflater)
-        setContentView(binding!!.getRoot())
+        val view = binding!!.root
+        setContentView(view)
         mIsCreateMode = intent.getBooleanExtra(EXTRA_IS_CREATE, false)
         // Register Activity Result launcher for QR scanner (replaces deprecated startActivityForResult)
         qrLauncher = registerForActivityResult(
@@ -155,6 +160,22 @@ class DeviceActivity : SyncthingActivity(), View.OnClickListener {
                 }
             }
         })
+
+        // handle edge-to-edge layout by preventing the top and bottom bars from overlapping the app content
+        ViewCompat.setOnApplyWindowInsetsListener(view) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            v.updateLayoutParams<ViewGroup.MarginLayoutParams>(
+                block = {
+                    leftMargin = insets.left
+                    topMargin = insets.top
+                    rightMargin = insets.right
+                    bottomMargin = insets.bottom
+                }
+            )
+            // Return CONSUMED if you don't want the window insets to keep passing
+            // down to descendant views.
+            WindowInsetsCompat.CONSUMED
+        }
     }
 
     private fun restoreDialogStates(savedInstanceState: Bundle) {

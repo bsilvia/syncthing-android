@@ -25,6 +25,9 @@ import android.widget.Toast
 import androidx.documentfile.provider.DocumentFile
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.gson.Gson
 import com.nutomic.syncthingandroid.R
@@ -113,7 +116,8 @@ class FolderActivity : SyncthingActivity(), OnServiceConnectedListener,
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = FragmentFolderBinding.inflate(layoutInflater)
-        setContentView(binding!!.getRoot())
+        val view = binding!!.root
+        setContentView(view)
 
         // Register Activity Result launchers to replace deprecated startActivityForResult
         chooseFolderLauncher = registerForActivityResult(
@@ -244,6 +248,22 @@ class FolderActivity : SyncthingActivity(), OnServiceConnectedListener,
                 }
             }
         })
+
+        // handle edge-to-edge layout by preventing the top and bottom bars from overlapping the app content
+        ViewCompat.setOnApplyWindowInsetsListener(view) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            v.updateLayoutParams<ViewGroup.MarginLayoutParams>(
+                block = {
+                    leftMargin = insets.left
+                    topMargin = insets.top
+                    rightMargin = insets.right
+                    bottomMargin = insets.bottom
+                }
+            )
+            // Return CONSUMED if you don't want the window insets to keep passing
+            // down to descendant views.
+            WindowInsetsCompat.CONSUMED
+        }
     }
 
     /**
