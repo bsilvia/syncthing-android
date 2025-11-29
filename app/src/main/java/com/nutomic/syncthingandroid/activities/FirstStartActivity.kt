@@ -23,6 +23,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.color.MaterialColors
@@ -74,7 +77,8 @@ class FirstStartActivity : Activity() {
 
         // Show first start welcome wizard UI.
         binding = ActivityFirstStartBinding.inflate(layoutInflater)
-        setContentView(binding!!.getRoot())
+        val view = binding!!.getRoot()
+        setContentView(view)
 
         binding!!.viewPager.setOnTouchListener { v, _ -> // Consume the event to prevent swiping through the slides.
             v.performClick()
@@ -96,6 +100,24 @@ class FirstStartActivity : Activity() {
         if (!this.isFirstStart) {
             // Skip intro slide
             onBtnNextClick()
+        }
+
+
+
+        // handle edge-to-edge layout by preventing the top and bottom bars from overlapping the app content
+        ViewCompat.setOnApplyWindowInsetsListener(view) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            v.updateLayoutParams<ViewGroup.MarginLayoutParams>(
+                block = {
+                    leftMargin = insets.left
+                    topMargin = insets.top
+                    rightMargin = insets.right
+                    bottomMargin = insets.bottom
+                }
+            )
+            // Return CONSUMED if you don't want the window insets to keep passing
+            // down to descendant views.
+            WindowInsetsCompat.CONSUMED
         }
     }
 
