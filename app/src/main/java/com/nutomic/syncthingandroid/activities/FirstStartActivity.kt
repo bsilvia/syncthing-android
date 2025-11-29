@@ -37,18 +37,13 @@ import com.nutomic.syncthingandroid.service.Constants.PermissionRequestType
 import com.nutomic.syncthingandroid.service.Constants.getConfigFile
 import com.nutomic.syncthingandroid.util.PermissionUtil.haveStoragePermission
 import com.nutomic.syncthingandroid.util.PermissionUtil.locationPermissions
-import com.nutomic.syncthingandroid.util.Util.runShellCommand
-import org.apache.commons.io.FileUtils
-import java.io.File
 import javax.inject.Inject
 
 class FirstStartActivity : Activity() {
     private enum class Slide(val layout: Int) {
         INTRO(R.layout.activity_firststart_slide_intro),
-
         STORAGE(R.layout.activity_firststart_slide_storage),
         LOCATION(R.layout.activity_firststart_slide_location),
-        API_LEVEL_30(R.layout.activity_firststart_slide_api_level_30),
         NOTIFICATION(R.layout.activity_firststart_slide_notification)
     }
 
@@ -70,7 +65,7 @@ class FirstStartActivity : Activity() {
          * Recheck storage permission. If it has been revoked after the user
          * completed the welcome slides, displays the slides again.
          */
-        if (!this.isFirstStart && haveStoragePermission(this) && upgradedToApiLevel30()) {
+        if (!this.isFirstStart && haveStoragePermission(this)) {
             startApp()
             return
         }
@@ -148,14 +143,6 @@ class FirstStartActivity : Activity() {
                 }
             }
 
-            Slide.API_LEVEL_30 -> if (!upgradedToApiLevel30()) {
-                Toast.makeText(
-                    this, R.string.toast_api_level_30_must_reset,
-                    Toast.LENGTH_LONG
-                ).show()
-                return
-            }
-
             else -> {}
         }
 
@@ -189,34 +176,6 @@ class FirstStartActivity : Activity() {
                 Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED
 
-
-    private fun upgradedToApiLevel30(): Boolean {
-        if (mPreferences!!.getBoolean(Constants.PREF_UPGRADED_TO_API_LEVEL_30, false)) {
-            return true
-        }
-        if (this.isFirstStart) {
-            mPreferences!!.edit { putBoolean(Constants.PREF_UPGRADED_TO_API_LEVEL_30, true) }
-            return true
-        }
-        return false
-    }
-
-    private fun upgradeToApiLevel30() {
-        val dbDir = File(this.filesDir, "index-v0.14.0.db")
-        if (dbDir.exists()) {
-            try {
-                FileUtils.deleteQuietly(dbDir)
-            } catch (e: Throwable) {
-                Log.w(TAG, "Deleting database with FileUtils failed", e)
-                runShellCommand("rm -r " + dbDir.absolutePath, false)
-                if (dbDir.exists()) {
-                    throw RuntimeException("Failed to delete existing database")
-                }
-            }
-        }
-        mPreferences!!.edit { putBoolean(Constants.PREF_UPGRADED_TO_API_LEVEL_30, true) }
-    }
-
     private fun currentSlide(): Slide {
         return slides[binding!!.viewPager.currentItem]
     }
@@ -226,12 +185,7 @@ class FirstStartActivity : Activity() {
             Slide.INTRO -> !this.isFirstStart
             Slide.STORAGE -> haveStoragePermission(this)
             Slide.LOCATION -> hasLocationPermission()
-            Slide.API_LEVEL_30 ->                 // Skip if running as root, as that circumvents any Android FS restrictions.
-                upgradedToApiLevel30()
-                        || mPreferences!!.getBoolean(Constants.PREF_USE_ROOT, false)
-
             Slide.NOTIFICATION -> this.isNotificationPermissionGranted
-
         }
     }
 
@@ -286,14 +240,6 @@ class FirstStartActivity : Activity() {
                 Slide.LOCATION -> {
                     val btnGrantLocationPerm = holder.root.findViewById<Button>(R.id.btnGrantLocationPerm)
                     btnGrantLocationPerm?.setOnClickListener { requestLocationPermission() }
-                }
-
-                Slide.API_LEVEL_30 -> {
-                    val btnResetDatabase = holder.root.findViewById<Button>(R.id.btnResetDatabase)
-                    btnResetDatabase?.setOnClickListener {
-                        upgradeToApiLevel30()
-                        onBtnNextClick()
-                    }
                 }
 
                 Slide.NOTIFICATION -> {
