@@ -661,7 +661,7 @@ class FolderActivity : SyncthingActivity(), OnServiceConnectedListener,
         ).toInt()
         val params = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, height)
         val dividerInset = getResources().getDimensionPixelOffset(R.dimen.material_divider_inset)
-        val contentInset = getResources().getDimensionPixelOffset(R.dimen.abc_action_bar_content_inset_material)
+        val contentInset = getResources().getDimensionPixelOffset(androidx.appcompat.R.dimen.abc_action_bar_content_inset_material)
 
         val view = findViewById<View>(R.id.folderTypeContainer)
         val layoutParams = view.layoutParams as ViewGroup.MarginLayoutParams
