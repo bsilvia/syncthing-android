@@ -37,6 +37,10 @@
 
     <uses-sdk tools:overrideLibrary="com.google.zxing.client.android" />
 
+    <queries>
+        <package android:name="android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION" />
+    </queries>
+
     <application
         android:allowBackup="false"
         android:fullBackupContent="false"
