@@ -244,12 +244,7 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
             )
             if (savedInstanceState.getBoolean(IS_QRCODE_DIALOG_DISPLAYED)) {
                 val deviceId = savedInstanceState.getString(DEVICE_ID_KEY)
-                val qrBitmap: Bitmap? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    savedInstanceState.getParcelable(QRCODE_BITMAP_KEY, Bitmap::class.java)
-                } else {
-                    @Suppress("DEPRECATION")
-                    savedInstanceState.getParcelable(QRCODE_BITMAP_KEY)
-                }
+                val qrBitmap: Bitmap? = savedInstanceState.getParcelable(QRCODE_BITMAP_KEY, Bitmap::class.java)
                 showQrCodeDialog(deviceId, qrBitmap)
             }
         }
@@ -263,11 +258,7 @@ class MainActivity : StateDialogActivity(), OnServiceStateChangeListener {
         // SyncthingService needs to be started from this activity as the user
         // can directly launch this activity from the recent activity switcher.
         val serviceIntent = Intent(this, SyncthingService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(serviceIntent)
-        } else {
-            startService(serviceIntent)
-        }
+        startForegroundService(serviceIntent)
 
         onNewIntent(intent)
 
