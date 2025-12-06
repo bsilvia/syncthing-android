@@ -71,7 +71,7 @@ class FolderPickerActivity : SyncthingActivity(), OnItemClickListener,
         if (intent.hasExtra(EXTRA_INITIAL_DIRECTORY)) {
             displayFolder(
                 File(
-                    Objects.requireNonNull<String?>(
+                    Objects.requireNonNull<String>(
                         intent.getStringExtra(
                             EXTRA_INITIAL_DIRECTORY
                         )
