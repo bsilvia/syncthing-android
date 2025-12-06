@@ -6,6 +6,9 @@
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -20,16 +23,23 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- FOREGROUND_SERVICE is required to create a foreground service on 9 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
     <!-- ACCESS_FINE_LOCATION is required to get WiFi's SSID on 10 "Q" -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <!-- ACCESS_BACKGROUND_LOCATION is required to get WiFi's SSID on 10 "Q" -->
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"
+        tools:ignore="BackgroundLocationPolicy" />
     <!-- CAMERA is required for the QR Code Scanner -->
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- MANAGE_EXTERNAL_STORAGE is required on Android 11 "R" -->
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
 
     <uses-sdk tools:overrideLibrary="com.google.zxing.client.android" />
+
+    <queries>
+        <package android:name="android.settings.MANAGE_APP_ALL_FILES_ACCESS_PERMISSION" />
+    </queries>
 
     <application
         android:allowBackup="false"
@@ -45,7 +55,6 @@
         android:name=".SyncthingApp">
         <activity
                 android:name=".activities.FirstStartActivity"
-                android:label="@string/app_name"
                 android:launchMode="singleTask"
             android:exported="true">
             <intent-filter>
@@ -59,7 +68,6 @@
         </activity>
         <activity
             android:name=".activities.MainActivity"
-            android:label="@string/app_name"
             android:launchMode="singleTask">
         </activity>
         <activity
@@ -126,7 +134,8 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activities.MainActivity" />
         </activity>
-        <service android:name=".service.SyncthingService" />
+        <service android:name=".service.SyncthingService"
+            android:foregroundServiceType="dataSync"/>
         <receiver android:name=".receiver.BootReceiver"
             android:exported="false">
             <intent-filter>

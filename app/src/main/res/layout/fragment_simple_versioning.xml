@@ -26,7 +26,7 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <fragment
+        <androidx.fragment.app.FragmentContainerView
             android:id="@+id/fragment"
             android:name="com.nutomic.syncthingandroid.fragments.NumberPickerFragment"
             android:layout_width="match_parent"

@@ -1,39 +1,43 @@
-import org.gradle.configurationcache.extensions.capitalized
-
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     id("com.android.application")
     id("com.github.ben-manes.versions")
-    id("com.github.triplet.play") version "3.7.0"
+    id("com.github.triplet.play") version "3.12.2"
+    id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.kapt")
 }
 
 dependencies {
     implementation("eu.chainfire:libsuperuser:1.1.1")
-    implementation("com.google.android.material:material:1.8.0")
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.android.material:material:1.13.0")
+    implementation("com.google.code.gson:gson:2.13.2")
     implementation("org.mindrot:jbcrypt:0.4")
-    implementation("com.google.guava:guava:32.1.3-android")
+    implementation("com.google.guava:guava:33.5.0-android")
     implementation("com.annimon:stream:1.2.2")
     implementation("com.android.volley:volley:1.2.1")
-    implementation("commons-io:commons-io:2.11.0")
+    implementation("commons-io:commons-io:2.21.0")
+    implementation("androidx.documentfile:documentfile:1.1.0")
+    implementation("androidx.preference:preference-ktx:1.2.1")
 
     implementation("com.journeyapps:zxing-android-embedded:4.3.0") {
         isTransitive = false
     }
-    implementation("com.google.zxing:core:3.4.1")
+    implementation("com.google.zxing:core:3.5.4")
 
-    implementation("androidx.constraintlayout:constraintlayout:2.0.4")
-    implementation("com.google.dagger:dagger:2.49")
-    annotationProcessor("com.google.dagger:dagger-compiler:2.49")
-    androidTestImplementation("androidx.test:rules:1.4.0")
-    androidTestImplementation("androidx.annotation:annotation:1.2.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.2.1")
+    implementation("com.google.dagger:dagger:2.57.2")
+    implementation("androidx.core:core-ktx:1.17.0")
+    kapt("com.google.dagger:dagger-compiler:2.57.2")
+    // Align annotation version with other AndroidX constraints to avoid resolution
+    // conflicts during lint and test configuration resolution.
+    androidTestImplementation("androidx.annotation:annotation:1.8.1")
 }
 
 android {
     val ndkVersionShared = rootProject.extra.get("ndkVersionShared")
     // Changes to these values need to be reflected in `../docker/Dockerfile`
-    compileSdk = 34
-    buildToolsVersion = "34.0.0"
-    ndkVersion = "${ndkVersionShared}"
+    compileSdk = 36
+    ndkVersion = "$ndkVersionShared"
 
     buildFeatures {
         dataBinding = true
@@ -42,10 +46,10 @@ android {
 
     defaultConfig {
         applicationId = "com.nutomic.syncthingandroid"
-        minSdk = 21
-        targetSdk = 33
-        versionCode = 4395
-        versionName = "1.28.1"
+        minSdk = 35
+        targetSdk = 35
+        versionCode = 4396
+        versionName = "2.0.9"
         testApplicationId = "com.nutomic.syncthingandroid.test"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -64,7 +68,6 @@ android {
             applicationIdSuffix = ".debug"
             isDebuggable = true
             isJniDebuggable = true
-            isRenderscriptDebuggable = true
             isMinifyEnabled = false
         }
         getByName("release") {
@@ -75,17 +78,28 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     // Otherwise libsyncthing.so doesn't appear where it should in installs
     // based on app bundles, and thus nothing works.
-    packagingOptions {
+    packaging {
         jniLibs {
             useLegacyPackaging = true
         }
     }
+    namespace = "com.nutomic.syncthingandroid"
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
+    }
+}
+
+kapt {
+    correctErrorTypes = true
 }
 
 play {
@@ -113,8 +127,10 @@ tasks.register<Delete>("deleteUnsupportedPlayTranslations") {
 }
 
 project.afterEvaluate {
-    android.buildTypes.forEach {
-        tasks.named("merge${it.name.capitalized()}JniLibFolders") {
+    android.buildTypes.forEach { buildType ->
+        tasks.named("merge${
+            buildType.name.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+        }JniLibFolders") {
             dependsOn(":syncthing:buildNative")
         }
     }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
@@ -27,8 +28,8 @@
                 style="@style/Widget.Syncthing.TextView.Label.Details.Field"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_label_outline_24dp"
                 android:drawableStart="@drawable/ic_label_outline_24dp"
+                android:autofillHints="@string/folder_label"
                 android:hint="@string/folder_label"
                 android:imeOptions="actionDone"
                 android:inputType="textCapWords|textNoSuggestions" />
@@ -38,8 +39,8 @@
                 style="@style/Widget.Syncthing.TextView.Label.Details.Field"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_vpn_key_24dp"
                 android:drawableStart="@drawable/ic_vpn_key_24dp"
+                android:autofillHints="@string/folder_id"
                 android:hint="@string/folder_id"
                 android:imeOptions="actionDone"
                 android:inputType="textCapWords" />
@@ -49,10 +50,9 @@
                 style="@style/Widget.Syncthing.TextView.Label.Details"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_folder_24dp"
-                android:drawableStart="@drawable/ic_folder_24dp"
                 android:focusable="true"
-                android:hint="@string/directory"/>
+                android:hint="@string/directory"
+                app:drawableStartCompat="@drawable/ic_folder_24dp" />
 
             <LinearLayout
                 android:id="@+id/devicesContainer"
@@ -64,9 +64,8 @@
                     style="@style/Widget.Syncthing.TextView.Label.Details"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:drawableLeft="@drawable/ic_device_hub_24dp"
-                    android:drawableStart="@drawable/ic_device_hub_24dp"
-                    android:text="@string/devices" />
+                    android:text="@string/devices"
+                    app:drawableStartCompat="@drawable/ic_device_hub_24dp" />
 
             </LinearLayout>
 
@@ -75,26 +74,20 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="?selectableItemBackground"
-                android:orientation="vertical"
-                android:gravity="center_vertical">
+                android:orientation="vertical">
 
                 <TextView
                     style="@style/Widget.Syncthing.TextView.Label.Details"
                     android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:background="@null"
-                    android:checked="false"
-                    android:drawableLeft="@drawable/ic_lock_24dp"
-                    android:drawableStart="@drawable/ic_lock_24dp"
-                    android:text="@string/folder_type" />
+                    android:layout_height="wrap_content"
+                    android:text="@string/folder_type"
+                    app:drawableStartCompat="@drawable/ic_lock_24dp" />
 
                 <TextView
                     android:id="@+id/folderType"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="72dp"
-                    android:layout_marginTop="-10dp"
                     android:textAppearance="@style/TextAppearance.AppCompat.Caption" />
 
                 <TextView
@@ -119,7 +112,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:checked="false"
-                android:drawableLeft="@drawable/ic_autorenew_24dp"
                 android:drawableStart="@drawable/ic_autorenew_24dp"
                 android:text="@string/folder_fileWatcher" />
 
@@ -141,7 +133,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:checked="false"
-                android:drawableLeft="@drawable/ic_folder_24dp"
                 android:drawableStart="@drawable/ic_folder_24dp"
                 android:text="@string/folder_pause" />
 
@@ -160,9 +151,8 @@
                     android:layout_weight="1"
                     android:background="@null"
                     android:checked="false"
-                    android:drawableLeft="@drawable/ic_content_copy_24dp"
-                    android:drawableStart="@drawable/ic_content_copy_24dp"
-                    android:text="@string/pull_order" />
+                    android:text="@string/pull_order"
+                    app:drawableStartCompat="@drawable/ic_content_copy_24dp" />
 
                 <TextView
                     android:id="@+id/pullOrderType"
@@ -197,9 +187,8 @@
                     android:layout_weight="1"
                     android:background="@null"
                     android:checked="false"
-                    android:drawableLeft="@drawable/ic_history_24dp"
-                    android:drawableStart="@drawable/ic_history_24dp"
-                    android:text="@string/file_versioning" />
+                    android:text="@string/file_versioning"
+                    app:drawableStartCompat="@drawable/ic_history_24dp" />
 
                 <TextView
                     android:id="@+id/versioningType"
@@ -224,9 +213,8 @@
                     android:layout_height="0dp"
                     android:layout_weight="1"
                     android:background="@null"
-                    android:drawableLeft="@drawable/ic_visibility_off_24dp"
-                    android:drawableStart="@drawable/ic_visibility_off_24dp"
-                    android:text="@string/ignore_patterns"/>
+                    android:text="@string/ignore_patterns"
+                    app:drawableStartCompat="@drawable/ic_visibility_off_24dp" />
 
             </LinearLayout>
         </LinearLayout>

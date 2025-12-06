@@ -90,9 +90,21 @@ for target in BUILD_TARGETS:
     print('Building syncthing for', target['arch'])
 
     environ = os.environ.copy()
+    # Allow injecting extra ldflags via EXTRA_LDFLAGS. Ensure the
+    # -checklinkname=0 flag is present to relax linkname checks when
+    # building with newer toolchains that may cause link failures.
+    # see https://github.com/wlynxg/anet/blob/main/README.md#how-to-build-with-go-1230-or-later
+    extra_ldflags = os.environ.get('EXTRA_LDFLAGS', '')
+    if extra_ldflags:
+        if '-checklinkname=0' not in extra_ldflags:
+            extra_ldflags = extra_ldflags + ' -checklinkname=0'
+    else:
+        extra_ldflags = '-checklinkname=0'
+
     environ.update({
         'GO111MODULE': 'on',
         'CGO_ENABLED': '1',
+        'EXTRA_LDFLAGS': extra_ldflags,
     })
 
     subprocess.check_call(

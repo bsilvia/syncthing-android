@@ -29,13 +29,62 @@ The project is translated on [Hosted Weblate](https://hosted.weblate.org/project
 
 ## Dev
 
-Language codes are usually mapped correctly by Weblate itself.  The supported
-set is different between [Google Play][1] and Android apps.  The latter can be
-deduced by what the [Android core framework itself supports][2].  New languages
+Language codes are usually mapped correctly by Weblate itself. The supported
+set is different between [Google Play][1] and Android apps. The latter can be
+deduced by what the [Android core framework itself supports][2]. New languages
 need to be added in the repository first, then appear automatically in Weblate.
 
 [1]: https://support.google.com/googleplay/android-developer/table/4419860
 [2]: https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/core/res/res/
+
+# Dev Setup
+
+To develop using Android Studio, install Android Studio and the Android SDK/NDK, then set persistent environment variables. Use the IDE SDK Manager for GUI installs or the command line for scripted installs.
+
+1. Install Android Studio
+
+   - Download and install from https://developer.android.com/studio.
+   - On first run open Tools → SDK Manager:
+     - Under SDK Platform, install an Android SDK Platform (e.g. Android 36).
+     - Under SDK Tools, install
+       - Android SDK Build-Tools
+       - Android SDK Platform-Tools
+       - Android SDK Command-line Tools.
+       - “NDK (Side by side)” and a specific NDK version required by the project (or use the same version referenced in the Dockerfile).
+   - (Optional) Install CMake if prompted.
+
+2. Install or update SDK/NDK from the command line (optional)
+
+   - Use the SDK command-line tools (sdkmanager). Example:
+     ```
+     sdkmanager "platform-tools" "build-tools;33.0.2" "platforms;android-33" "ndk;25.2.9519653" "cmdline-tools;latest"
+     ```
+   - Replace versions with the ones your build requires.
+
+3. Set persistent environment variables
+
+   - Windows (use System → Advanced system settings → Environment Variables or run as Administrator):
+     - Recommended: open “Edit the system environment variables” UI and add/modify variables.
+     - `ANDROID_HOME=C:\Users\User\AppData\Local\Android\Sdk`
+     - `NDK_VERSION=29.0.14206865`
+
+4. Install Go
+
+   - `winget install GoLang.Go`
+
+5. Verify installation
+   ```
+   $env:ANDROID_HOME
+   go version
+   java -version         # must be Java 21
+   ```
+
+Notes
+
+- Use the exact SDK/NDK versions required by the project (see docker/Dockerfile or project docs).
+- Prefer setting ANDROID_SDK_ROOT (or ANDROID_HOME as a legacy alias) and ANDROID_NDK_HOME so build tools and Gradle can find the SDK/NDK.
+- On Windows prefer the Environment Variables UI to avoid PATH truncation issues with setx.
+- After setting these variables, Android Studio and command-line builds (./gradlew assembleDebug, ./gradlew buildNative) should find the SDK/NDK automatically.
 
 # Building
 
@@ -46,30 +95,34 @@ follow them separately.
 ## Dependencies
 
 1. Android SDK and NDK
-    1. Download SDK command line tools from https://developer.android.com/studio#command-line-tools-only.
-    2. Unpack the downloaded archive to an empty folder. This path is going
-       to become your `ANDROID_HOME` folder.
-    3. Inside the unpacked `cmdline-tools` folder, create yet another folder
-       called `latest`, then move everything else inside it, so that the final
-       folder hierarchy looks as follows.
-       ```
-       cmdline-tools/latest/bin
-       cmdline-tools/latest/lib
-       cmdline-tools/latest/source.properties
-       cmdline-tools/latest/NOTICE.txt
-       ```
-    4. Navigate inside `cmdline-tools/latest/bin`, then execute
-       ```
-       ./sdkmanager "platform-tools" "build-tools;<version>" "platforms;android-<version>" "extras;android;m2repository" "ndk;<version>"
-       ```
-       The required tools and NDK will be downloaded automatically.
 
-        **NOTE:** You should check [Dockerfile](docker/Dockerfile) for the
-        specific version numbers to insert in the command above.
+   1. Download SDK command line tools from https://developer.android.com/studio#command-line-tools-only.
+   2. Unpack the downloaded archive to an empty folder. This path is going
+      to become your `ANDROID_HOME` folder.
+   3. Inside the unpacked `cmdline-tools` folder, create yet another folder
+      called `latest`, then move everything else inside it, so that the final
+      folder hierarchy looks as follows.
+      ```
+      cmdline-tools/latest/bin
+      cmdline-tools/latest/lib
+      cmdline-tools/latest/source.properties
+      cmdline-tools/latest/NOTICE.txt
+      ```
+   4. Navigate inside `cmdline-tools/latest/bin`, then execute
+
+      ```
+      ./sdkmanager "platform-tools" "build-tools;<version>" "platforms;android-<version>" "extras;android;m2repository" "ndk;<version>"
+      ```
+
+      The required tools and NDK will be downloaded automatically.
+
+      **NOTE:** You should check [Dockerfile](docker/Dockerfile) for the
+      specific version numbers to insert in the command above.
+
 2. Go (see https://docs.syncthing.net/dev/building#prerequisites for the
    required version)
-3. Java version 11 (if not present in ``$PATH``, you might need to set
-   ``$JAVA_HOME`` accordingly)
+3. Java version 11 (if not present in `$PATH`, you might need to set
+   `$JAVA_HOME` accordingly)
 4. Python version 3
 
 ## Build instructions
