@@ -56,7 +56,6 @@ class SettingsActivity : SyncthingActivity() {
         super.onCreate(savedInstanceState)
         val view = ActivityPreferencesBinding.inflate(layoutInflater).root
         setContentView(view)
-//        setContentView(R.layout.activity_preferences)
         setTitle(R.string.settings_title)
 
         val settingsFragment = SettingsFragment()
@@ -249,17 +248,15 @@ class SettingsActivity : SyncthingActivity() {
             mWifiSsidWhitelist!!.isEnabled = mRunOnWifi!!.isChecked
 
             mCategorySyncthingOptions = findPreference("category_syncthing_options")
-            setPreferenceCategoryChangeListener(
-                mCategorySyncthingOptions
-            ) { preference: Preference?, o: Any? ->
+            setPreferenceCategoryChangeListener(mCategorySyncthingOptions ) {
+                preference: Preference?, o: Any? ->
                 this.onSyncthingPreferenceChange(
                     preference!!,
                     o
                 )
             }
             mCategoryRunConditions = findPreference("category_run_conditions")
-            setPreferenceCategoryChangeListener(
-                mCategoryRunConditions
+            setPreferenceCategoryChangeListener(mCategoryRunConditions
             ) { preference: Preference?, o: Any? ->
                 this.onRunConditionPreferenceChange(
                     preference!!,

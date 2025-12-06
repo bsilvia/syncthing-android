@@ -90,20 +90,18 @@ class SyncthingRunnable(context: Context, command: Command) : Runnable {
                 "--log-level=$logLevel"
             )
 
-            // TODO - this has the wrong cmd line arg
+            // TODO - reset-database no longer exists
             Command.ResetDatabase -> mCommand = arrayOf<String>(
                 mSyncthingBinary.path,
-                "--home",
-                mContext.filesDir.toString(),
+                "--home=${mContext.filesDir}",
                 "--reset-database",
                 "--log-level=$logLevel"
             )
 
-            // TODO - this has the wrong cmd line arg
+            // TODO - reset-deltas no longer exists
             Command.ResetDeltas -> mCommand = arrayOf<String>(
                 mSyncthingBinary.path,
-                "--home",
-                mContext.filesDir.toString(),
+                "--home=${mContext.filesDir}",
                 "-reset-deltas",
                 "--log-level=$logLevel"
             )
