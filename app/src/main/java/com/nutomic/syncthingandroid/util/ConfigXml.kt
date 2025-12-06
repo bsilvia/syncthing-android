@@ -91,8 +91,7 @@ class ConfigXml(private val mContext: Context) {
 
     val webGuiUrl: URL
         get() {
-            val urlProtocol =
-                if (Constants.osSupportsTLS12()) "https" else "http"
+            val urlProtocol = "https"
             try {
                 return URL(
                     "$urlProtocol://" + this.guiElement.getElementsByTagName("address").item(0)
@@ -145,12 +144,11 @@ class ConfigXml(private val mContext: Context) {
         /* Section - GUI */
         val gui = this.guiElement
 
-        // Platform-specific: Force REST API and Web UI access to use TLS 1.2 or not.
-        val forceHttps = Constants.osSupportsTLS12()
+        // Force REST API and Web UI access to use TLS 1.2 or not.
         if (!gui.hasAttribute("tls") ||
-            gui.getAttribute("tls").toBoolean() != forceHttps
+            !gui.getAttribute("tls").toBoolean()
         ) {
-            gui.setAttribute("tls", if (forceHttps) "true" else "false")
+            gui.setAttribute("tls", "true")
             changed = true
         }
 

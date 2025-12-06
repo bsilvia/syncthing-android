@@ -275,8 +275,8 @@ class WebGuiActivity : StateDialogActivity(), OnServiceStateChangeListener {
             properties.setProperty("https.nonProxyHosts", exclusionList)
 
             try {
-                val applictionCls = Class.forName("android.app.Application")
-                val loadedApkField = applictionCls.getDeclaredField("mLoadedApk")
+                val applicationCls = Class.forName("android.app.Application")
+                val loadedApkField = applicationCls.getDeclaredField("mLoadedApk")
                 loadedApkField.isAccessible = true
                 val loadedApk = loadedApkField.get(appContext)
                 val loadedApkCls = Class.forName("android.app.LoadedApk")

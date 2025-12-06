@@ -131,11 +131,10 @@ object Constants {
      * to syncthing core v0.14.53+.
      */
     fun osSupportsTLS12(): Boolean {
-        return Build.VERSION.SDK_INT != Build.VERSION_CODES.N
+        return true
     }
 
-    var FLAG_IMMUTABLE: Int =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+    var FLAG_IMMUTABLE: Int = PendingIntent.FLAG_IMMUTABLE
 
     /**
      * These are the request codes used when requesting the permissions.
