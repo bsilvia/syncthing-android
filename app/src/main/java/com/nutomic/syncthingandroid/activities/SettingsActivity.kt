@@ -12,8 +12,12 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.app.TaskStackBuilder
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.preference.CheckBoxPreference
 import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
@@ -21,12 +25,12 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceGroup
 import androidx.preference.PreferenceScreen
-import androidx.preference.get
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.google.common.collect.Iterables
 import com.nutomic.syncthingandroid.R
 import com.nutomic.syncthingandroid.SyncthingApp
+import com.nutomic.syncthingandroid.databinding.ActivityPreferencesBinding
 import com.nutomic.syncthingandroid.model.Config.Gui
 import com.nutomic.syncthingandroid.model.Device
 import com.nutomic.syncthingandroid.model.Options
@@ -50,7 +54,9 @@ import javax.inject.Inject
 class SettingsActivity : SyncthingActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_preferences)
+        val view = ActivityPreferencesBinding.inflate(layoutInflater).root
+        setContentView(view)
+//        setContentView(R.layout.activity_preferences)
         setTitle(R.string.settings_title)
 
         val settingsFragment = SettingsFragment()
@@ -64,6 +70,22 @@ class SettingsActivity : SyncthingActivity() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.settings_container, settingsFragment)
             .commit()
+
+        // handle edge-to-edge layout by preventing the top and bottom bars from overlapping the app content
+        ViewCompat.setOnApplyWindowInsetsListener(view) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            v.updateLayoutParams<ViewGroup.MarginLayoutParams>(
+                block = {
+                    leftMargin = insets.left
+                    topMargin = insets.top
+                    rightMargin = insets.right
+                    bottomMargin = insets.bottom
+                }
+            )
+            // Return CONSUMED if you don't want the window insets to keep passing
+            // down to descendant views.
+            WindowInsetsCompat.CONSUMED
+        }
     }
 
     override fun onRequestPermissionsResult(
@@ -306,27 +328,27 @@ class SettingsActivity : SyncthingActivity() {
                 Log.d(TAG, "Failed to get app version name")
             }
 
-            openSubPrefScreen(screen)
+//            openSubPrefScreen(screen)
         }
 
-        private fun openSubPrefScreen(prefScreen: PreferenceScreen) {
-            val bundle = arguments ?: return
-            val openSubPrefScreen = bundle.getString(EXTRA_OPEN_SUB_PREF_SCREEN, "")
-            // Open sub preferences screen if EXTRA_OPEN_SUB_PREF_SCREEN was passed in bundle.
-            if (openSubPrefScreen != null && !TextUtils.isEmpty(openSubPrefScreen)) {
-                Log.v(TAG, "Transitioning to pref screen $openSubPrefScreen")
-                val categoryRunConditions = findPreference(openSubPrefScreen) as PreferenceScreen?
-                // TODO - test this is correct
-                val itemsCount = prefScreen.preferenceCount
-                for (itemNumber in 0..<itemsCount) {
-                    if (prefScreen[itemNumber] == categoryRunConditions) {
-                        // Simulates click on the sub-preference
-                        prefScreen[itemNumber].performClick()
-                        break
-                    }
-                }
-            }
-        }
+//        private fun openSubPrefScreen(prefScreen: PreferenceScreen) {
+//            val bundle = arguments ?: return
+//            val openSubPrefScreen = bundle.getString(EXTRA_OPEN_SUB_PREF_SCREEN, "")
+//            // Open sub preferences screen if EXTRA_OPEN_SUB_PREF_SCREEN was passed in bundle.
+//            if (openSubPrefScreen != null && !TextUtils.isEmpty(openSubPrefScreen)) {
+//                Log.v(TAG, "Transitioning to pref screen $openSubPrefScreen")
+//                val categoryRunConditions = findPreference(openSubPrefScreen) as PreferenceScreen?
+//                // TODO - find the proper way to simulate a click
+//                val itemsCount = prefScreen.preferenceCount
+//                for (itemNumber in 0..<itemsCount) {
+//                    if (prefScreen[itemNumber] == categoryRunConditions) {
+//                        // Simulates click on the sub-preference
+//                        prefScreen[itemNumber].performClick()
+//                        break
+//                    }
+//                }
+//            }
+//        }
 
         override fun onServiceConnected() {
             Log.v(TAG, "onServiceConnected")
