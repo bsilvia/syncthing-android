@@ -194,11 +194,7 @@ class SettingsActivity : SyncthingActivity() {
          */
         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
             super.onViewCreated(view, savedInstanceState)
-//        }
-//        override fun onActivityCreated(savedInstanceState: Bundle?) {
-//            super.onActivityCreated(savedInstanceState)
 
-            addPreferencesFromResource(R.xml.app_settings)
             val screen = preferenceScreen
             mRunConditions = findPreference(Constants.PREF_RUN_CONDITIONS)
             mStartServiceOnBoot = findPreference(Constants.PREF_START_SERVICE_ON_BOOT)
