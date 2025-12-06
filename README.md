@@ -1,3 +1,10 @@
+# Bring up to Date
+
+This project was discontinued by its original maintainer. This repository will
+be an attempt to resurrect the project, with the primarly goal of using it for
+personal uses and without intention to solve the issues with or publish to the
+Google Play store at this time.
+
 # Discontinued
 
 This app is discontinued. The last release on Github and F-Droid will happen
