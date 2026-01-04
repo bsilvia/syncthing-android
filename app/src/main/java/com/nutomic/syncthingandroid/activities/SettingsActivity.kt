@@ -184,7 +184,13 @@ class SettingsActivity : SyncthingActivity() {
             savedInstanceState: Bundle?,
             rootKey: String?
         ) {
-            setPreferencesFromResource(R.xml.app_settings, rootKey)
+            // If a specific preferences xml was requested, load that instead
+            val prefXmlRes = arguments?.getInt("pref_xml")
+            if (prefXmlRes != null && prefXmlRes != 0) {
+                setPreferencesFromResource(prefXmlRes, rootKey)
+            } else {
+                setPreferencesFromResource(R.xml.app_settings, rootKey)
+            }
         }
 
         /**
@@ -194,6 +200,8 @@ class SettingsActivity : SyncthingActivity() {
          */
         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
             super.onViewCreated(view, savedInstanceState)
+
+            return
 
             val screen = preferenceScreen
             mRunConditions = findPreference(Constants.PREF_RUN_CONDITIONS)
@@ -205,9 +213,9 @@ class SettingsActivity : SyncthingActivity() {
             mWifiSsidWhitelist = findPreference(Constants.PREF_WIFI_SSID_WHITELIST)
             mRunInFlightMode = findPreference(Constants.PREF_RUN_IN_FLIGHT_MODE)
 
-            val languagePref = findPreference<ListPreference>(Languages.PREFERENCE_LANGUAGE)
-            val categoryBehaviour = findPreference<PreferenceScreen>("category_behaviour")
-            categoryBehaviour?.removePreference(languagePref!!)
+//            val languagePref = findPreference<ListPreference>(Languages.PREFERENCE_LANGUAGE)
+//            val categoryBehaviour = findPreference<Preference>("category_behaviour")
+//            categoryBehaviour?.removePreference(languagePref!!)
 
             mDeviceName = findPreference("deviceName")
             mListenAddresses = findPreference("listenAddresses")
@@ -747,6 +755,34 @@ class SettingsActivity : SyncthingActivity() {
 
                 else -> return false
             }
+        }
+
+        override fun onPreferenceTreeClick(preference: Preference): Boolean {
+            // Map top-level category preference keys to separate XML resource files.
+            val prefXml = when (preference.key) {
+                "category_run_conditions" -> R.xml.prefs_run_conditions
+                "category_behaviour" -> R.xml.prefs_behaviour
+                "category_syncthing_options" -> R.xml.prefs_syncthing_options
+                "category_backup" -> R.xml.prefs_backup
+                "category_debug" -> R.xml.prefs_debug
+                "category_experimental" -> R.xml.prefs_experimental
+                "category_about" -> R.xml.prefs_about
+                else -> 0
+            }
+
+            if (prefXml != 0) {
+                val fragment = SettingsFragment()
+                val args = Bundle()
+                args.putInt("pref_xml", prefXml)
+                fragment.arguments = args
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.settings_container, fragment)
+                    .addToBackStack(preference.key)
+                    .commit()
+                return true
+            }
+
+            return super.onPreferenceTreeClick(preference)
         }
 
         /**
