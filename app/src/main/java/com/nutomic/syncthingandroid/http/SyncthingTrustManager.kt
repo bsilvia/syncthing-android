@@ -36,13 +36,14 @@ internal class SyncthingTrustManager(private val mHttpsCertPath: File) : X509Tru
         certs: Array<X509Certificate>,
         authType: String?
     ) {
-        var `is`: InputStream? = null
+
         try {
-            `is` = FileInputStream(mHttpsCertPath)
-            val cf = CertificateFactory.getInstance("X.509")
-            val ca = cf.generateCertificate(`is`) as X509Certificate
-            for (cert in certs) {
-                cert.verify(ca.publicKey)
+            FileInputStream(mHttpsCertPath).use { inputStream ->
+                val cf = CertificateFactory.getInstance("X.509")
+                val ca = cf.generateCertificate(inputStream) as X509Certificate
+                for (cert in certs) {
+                    cert.verify(ca.publicKey)
+                }
             }
         } catch (e: FileNotFoundException) {
             throw CertificateException("Certificate file not found at ${mHttpsCertPath.absolutePath}", e)
@@ -54,12 +55,6 @@ internal class SyncthingTrustManager(private val mHttpsCertPath: File) : X509Tru
             throw CertificateException("Cryptographic provider error during certificate verification: ${e.message}", e)
         } catch (e: SignatureException) {
             throw CertificateException("Certificate verification failed: ${e.message}", e)
-        } finally {
-            try {
-                `is`?.close()
-            } catch (e: IOException) {
-                Log.w(TAG, e)
-            }
         }
     }
 
