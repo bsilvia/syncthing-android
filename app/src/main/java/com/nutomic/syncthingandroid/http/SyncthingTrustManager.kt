@@ -45,15 +45,15 @@ internal class SyncthingTrustManager(private val mHttpsCertPath: File) : X509Tru
                 cert.verify(ca.publicKey)
             }
         } catch (e: FileNotFoundException) {
-            throw CertificateException("Untrusted Certificate!", e)
+            throw CertificateException("Certificate file not found at ${mHttpsCertPath.absolutePath}", e)
         } catch (e: NoSuchAlgorithmException) {
-            throw CertificateException("Untrusted Certificate!", e)
+            throw CertificateException("Certificate verification failed: ${e.message}", e)
         } catch (e: InvalidKeyException) {
-            throw CertificateException("Untrusted Certificate!", e)
+            throw CertificateException("Certificate verification failed: ${e.message}", e)
         } catch (e: NoSuchProviderException) {
-            throw CertificateException("Untrusted Certificate!", e)
+            throw CertificateException("Cryptographic provider error during certificate verification: ${e.message}", e)
         } catch (e: SignatureException) {
-            throw CertificateException("Untrusted Certificate!", e)
+            throw CertificateException("Certificate verification failed: ${e.message}", e)
         } finally {
             try {
                 `is`?.close()
