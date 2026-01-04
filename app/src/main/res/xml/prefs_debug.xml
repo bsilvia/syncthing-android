@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <Preference
+        android:key="open_log"
+        android:title="@string/open_log"
+        android:summary="@string/open_log_summary">
+        <intent
+            android:action=".activities.LogActivity" />
+    </Preference>
+
+    <CheckBoxPreference
+        android:key="notify_crashes"
+        android:title="@string/notify_crashes_title"
+        android:summary="@string/notify_crashes_summary"/>
+
+    <com.nutomic.syncthingandroid.views.SttracePreference
+        android:key="debug_facilities_enabled"
+        android:title="@string/sttrace_title" />
+
+    <EditTextPreference
+        android:key="environment_variables"
+        android:title="@string/environment_variables"
+        android:singleLine="true"
+        android:inputType="textNoSuggestions"/>
+
+    <Preference
+        android:key="st_reset_database"
+        android:title="@string/st_reset_database_title"
+        android:singleLine="true" />
+
+    <Preference
+        android:key="st_reset_deltas"
+        android:title="@string/st_reset_deltas_title"
+        android:singleLine="true" />
+
+</PreferenceScreen>
