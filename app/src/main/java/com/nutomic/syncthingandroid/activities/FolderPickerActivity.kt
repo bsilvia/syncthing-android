@@ -270,9 +270,9 @@ class FolderPickerActivity : SyncthingActivity(), OnItemClickListener,
             val f: File = checkNotNull(getItem(position))
             title.text = f.getName()
             val textColor = if (f.isDirectory())
-                android.R.color.primary_text_light
+                R.color.primary_text
             else
-                android.R.color.tertiary_text_light
+                R.color.secondary_text
             title.setTextColor(ContextCompat.getColor(context, textColor))
 
             return convertView

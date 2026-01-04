@@ -4,6 +4,9 @@
     <color name="primary_dark">#0288D1</color>
     <color name="divider">#1F000000</color>
 
+    <color name="primary_text">#212121</color>
+    <color name="secondary_text">#757575</color>
+
     <color name="text_red">#ffff4444</color>
     <color name="text_blue">#ff33b5e5</color>
     <color name="text_green">#ff99cc00</color>
