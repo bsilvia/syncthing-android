@@ -1,12 +1,9 @@
 package com.nutomic.syncthingandroid.http
 
 import android.annotation.SuppressLint
-import android.util.Log
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
-import java.io.IOException
-import java.io.InputStream
 import java.security.InvalidKeyException
 import java.security.NoSuchAlgorithmException
 import java.security.NoSuchProviderException
@@ -58,8 +55,8 @@ internal class SyncthingTrustManager(private val mHttpsCertPath: File) : X509Tru
         }
     }
 
-    override fun getAcceptedIssuers(): Array<X509Certificate?>? {
-        return null
+    override fun getAcceptedIssuers(): Array<X509Certificate?> {
+        return emptyArray()
     }
 
     companion object {
