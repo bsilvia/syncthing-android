@@ -63,8 +63,4 @@ internal class SyncthingTrustManager(private val mHttpsCertPath: File) : X509Tru
     override fun getAcceptedIssuers(): Array<X509Certificate?>? {
         return null
     }
-
-    companion object {
-        private const val TAG = "SyncthingTrustManager"
-    }
 }
