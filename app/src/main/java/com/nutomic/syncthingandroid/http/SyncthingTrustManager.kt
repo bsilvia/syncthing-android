@@ -25,6 +25,13 @@ internal class SyncthingTrustManager(private val mHttpsCertPath: File) : X509Tru
     override fun checkClientTrusted(chain: Array<X509Certificate?>?, authType: String?) {
     }
 
+    private val trustedCertificate: X509Certificate by lazy {
+        FileInputStream(mHttpsCertPath).use { inputStream ->
+            val cf = CertificateFactory.getInstance("X.509")
+            cf.generateCertificate(inputStream) as X509Certificate
+        }
+    }
+
     /**
      * Verifies certs against public key of the local syncthing instance
      */
@@ -36,10 +43,8 @@ internal class SyncthingTrustManager(private val mHttpsCertPath: File) : X509Tru
 
         try {
             FileInputStream(mHttpsCertPath).use { inputStream ->
-                val cf = CertificateFactory.getInstance("X.509")
-                val ca = cf.generateCertificate(inputStream) as X509Certificate
                 for (cert in certs) {
-                    cert.verify(ca.publicKey)
+                    cert.verify(trustedCertificate.publicKey)
                 }
             }
         } catch (e: FileNotFoundException) {
@@ -55,8 +60,8 @@ internal class SyncthingTrustManager(private val mHttpsCertPath: File) : X509Tru
         }
     }
 
-    override fun getAcceptedIssuers(): Array<X509Certificate?> {
-        return emptyArray()
+    override fun getAcceptedIssuers(): Array<X509Certificate?>? {
+        return null
     }
 
     companion object {
